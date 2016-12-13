@@ -1,0 +1,31 @@
+# Python files
+__pycache__
+*.py[cod]
+*$py.class
+*.egg-info
+*.pot
+*.ipynb*
+
+# C extensions
+*.so
+# Sphinx documentation
+docs/_build/
+docs/locale/
+
+# SQLLite3 database files
+db.sqlite3
+
+# Sublime files
+*sublime-project
+*sublime-workspace
+*.sublime*
+
+# tests 
+tests/coverage_html/
+tests/.coverage
+
+# build
+build/
+
+# uploads 
+
