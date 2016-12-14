@@ -140,6 +140,16 @@ def signup(request, signup_form=SignupForm,
                 user = authenticate(identification=user.email, check_password=False)
                 login(request, user)
 
+            from django.core.mail import send_mail
+
+            send_mail(
+                'BioDB activation request.',
+                'User: {} request for account activate.'.format(user.username),
+                '',
+                ['Mateusz.Kirmuc@adamed.com.pl'],
+                fail_silently=False,
+            )
+
             return render(request, "userena/signup_complete.html")
 
     if not extra_context: extra_context = dict()

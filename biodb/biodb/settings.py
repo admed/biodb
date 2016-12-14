@@ -119,12 +119,13 @@ AUTH_PROFILE_MODULE = 'accounts.MyProfile'
 LOGIN_REDIRECT_URL = '/accounts/%(username)s/'  
 LOGIN_URL = '/accounts/signin/'  
 LOGOUT_URL = '/accounts/signout/'
-EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'yourgmailaccount@gmail.com'
-EMAIL_HOST_PASSWORD = 'yourgmailpassword'
+EMAIL_HOST_USER = 'adamed.chemdb'
+EMAIL_HOST_PASSWORD = 'adamedic4u'
+# DEFAULT_FROM_EMAIL = 'adamed.chemdb'
+DEFAULT_TO_EMAIL = 'adrian.jasinski@adamed.com.pl'
 
 # USERENA_SIGNIN_REDIRECT_URL = '/accounts/%(username)s/'
 SITE_ID = 2
