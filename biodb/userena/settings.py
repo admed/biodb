@@ -59,7 +59,7 @@ _USERENA_USE_HTTPS = getattr(settings, 'USERENA_USE_HTTPS', DEFAULT_USERENA_USE_
 
 USERENA_MUGSHOT_GRAVATAR = getattr(settings,
                                    'USERENA_MUGSHOT_GRAVATAR',
-                                   True)
+                                   False)
 
 USERENA_MUGSHOT_GRAVATAR_SECURE = getattr(settings,
                                           'USERENA_MUGSHOT_GRAVATAR_SECURE',

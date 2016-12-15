@@ -22,7 +22,10 @@
 
     <div id="details">
       {% block profile_details %}
+      {% comment %}
+        mugshot disabled
         <img class="mugshot" src="{{ profile.get_mugshot_url }}" alt="{% trans "Your mugshot" %}" />
+      {% endcomment %}
         <dl>
           {% block profile_definition_list %}
             {% if profile.user.get_full_name %}
