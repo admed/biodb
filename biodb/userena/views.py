@@ -25,6 +25,11 @@ import warnings
 
 from django.shortcuts import render
 
+from django.contrib.auth.decorators import login_required
+from biodb.decorators import anonymous_required
+
+from biodb import settings 
+
 class ExtraContextTemplateView(TemplateView):
     """ Add extra context to a simple template view """
     extra_context = None
@@ -71,6 +76,7 @@ class ProfileListView(ListView):
         queryset = profile_model.objects.get_visible_profiles(self.request.user).select_related()
         return queryset
 
+@anonymous_required
 @secure_required
 def signup(request, signup_form=SignupForm,
            template_name='userena/signup_form.html', success_url=None,
@@ -106,6 +112,7 @@ def signup(request, signup_form=SignupForm,
         Form supplied by ``signup_form``.
 
     """
+    
     # If signup is disabled, return 403
     if userena_settings.USERENA_DISABLE_SIGNUP:
         raise PermissionDenied
@@ -397,7 +404,7 @@ def disabled_account(request, username, template_name, extra_context=None):
     extra_context['profile'] = get_user_profile(user=user)
     return ExtraContextTemplateView.as_view(template_name=template_name,
                                             extra_context=extra_context)(request)
-
+@anonymous_required
 @secure_required
 def signin(request, auth_form=AuthenticationForm,
            template_name='userena/signin_form.html',
@@ -483,6 +490,7 @@ def signin(request, auth_form=AuthenticationForm,
     return ExtraContextTemplateView.as_view(template_name=template_name,
                                             extra_context=extra_context)(request)
 
+@login_required
 @secure_required
 def signout(request, next_page=userena_settings.USERENA_REDIRECT_ON_SIGNOUT,
             template_name='userena/signout.html', *args, **kwargs):
@@ -504,6 +512,7 @@ def signout(request, next_page=userena_settings.USERENA_REDIRECT_ON_SIGNOUT,
     userena_signals.account_signout.send(sender=None, user=request.user)
     return Signout(request, next_page, template_name, *args, **kwargs)
 
+@login_required
 @secure_required
 @permission_required_or_403('change_user', (get_user_model(), 'username', 'username'))
 def email_change(request, username, email_form=ChangeEmailForm,
@@ -574,7 +583,7 @@ def email_change(request, username, email_form=ChangeEmailForm,
     extra_context['profile'] = get_user_profile(user=user)
     return ExtraContextTemplateView.as_view(template_name=template_name,
                                             extra_context=extra_context)(request)
-
+@login_required
 @secure_required
 @permission_required_or_403('change_user', (get_user_model(), 'username', 'username'))
 def password_change(request, username, template_name='userena/password_form.html',
@@ -639,6 +648,7 @@ def password_change(request, username, template_name='userena/password_form.html
     extra_context['profile'] = get_user_profile(user=user)
     return ExtraContextTemplateView.as_view(template_name=template_name,
                                             extra_context=extra_context)(request)
+@login_required
 @secure_required
 @permission_required_or_403('change_profile', (get_profile_model(), 'user__username', 'username'))
 def profile_edit(request, username, edit_profile_form=EditProfileForm,
@@ -718,6 +728,7 @@ def profile_edit(request, username, edit_profile_form=EditProfileForm,
     extra_context['profile'] = profile
     return ExtraContextTemplateView.as_view(template_name=template_name,
                                             extra_context=extra_context)(request)
+@login_required
 def profile_detail(request, username,
     template_name=userena_settings.USERENA_PROFILE_DETAIL_TEMPLATE,
     extra_context=None, **kwargs):
