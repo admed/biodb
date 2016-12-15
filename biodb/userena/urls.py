@@ -1,9 +1,11 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib.auth import views as auth_views
 
 from userena import settings as userena_settings
 from userena import views as userena_views
 from userena.compat import auth_views_compat_quirks, password_reset_uid_kwarg
+
+import projects
 
 
 def merged_dict(dict_a, dict_b):
@@ -15,13 +17,13 @@ def merged_dict(dict_a, dict_b):
 
 urlpatterns = [
     # Signup, signin and signout
-    url(r'^signup/$',
+    url(r'^signup/{0,1}',
        userena_views.signup,
        name='userena_signup'),
-    url(r'^signin/$',
+    url(r'^signin/{0,1}',
        userena_views.signin,
        name='userena_signin'),
-    url(r'^signout/$',
+    url(r'^signout/{0,1}',
        userena_views.signout,
        name='userena_signout'),
 
@@ -108,7 +110,8 @@ urlpatterns = [
     url(r'^page/(?P<page>[0-9]+)/$',
        userena_views.ProfileListView.as_view(),
        name='userena_profile_list_paginated'),
-    url(r'^$',
-       userena_views.ProfileListView.as_view(),
-       name='userena_profile_list'),
+    # url(r'^$',
+    #    userena_views.ProfileListView.as_view(),
+    #    name='userena_profile_list'),
+    url(r'^$', projects.views.redirect_to_home)
 ]

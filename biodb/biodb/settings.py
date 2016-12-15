@@ -116,9 +116,10 @@ AUTHENTICATION_BACKENDS = (
 ANONYMOUS_USER_ID = -1
 AUTH_PROFILE_MODULE = 'accounts.MyProfile'  
 
-LOGIN_REDIRECT_URL = '/accounts/%(username)s/'  
-LOGIN_URL = '/accounts/signin/'  
-LOGOUT_URL = '/accounts/signout/'
+LOGIN_REDIRECT_URL = '/%(username)s/'  
+LOGIN_URL = '/signin/'  
+LOGOUT_URL = '/signout/'
+HOME_URL = '/projects/'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587

@@ -12,11 +12,11 @@ USERENA_SIGNIN_AFTER_SIGNUP = getattr(settings,
 
 USERENA_REDIRECT_ON_SIGNOUT = getattr(settings,
                                       'USERENA_REDIRECT_ON_SIGNOUT',
-                                      '/accounts/signin/')
+                                      '/signin/')
 
 USERENA_SIGNIN_REDIRECT_URL = getattr(settings,
                                       'USERENA_SIGNIN_REDIRECT_URL',
-                                      '/accounts/%(username)s/')
+                                      '/%(username)s/')
 
 USERENA_ACTIVATION_REQUIRED = getattr(settings,
                                       'USERENA_ACTIVATION_REQUIRED',
@@ -87,7 +87,7 @@ USERENA_DEFAULT_PRIVACY = getattr(settings,
 
 USERENA_DISABLE_PROFILE_LIST = getattr(settings,
                                        'USERENA_DISABLE_PROFILE_LIST',
-                                       False)
+                                       True)
 
 USERENA_DISABLE_SIGNUP = getattr(settings,
                                  'USERENA_DISABLE_SIGNUP',
