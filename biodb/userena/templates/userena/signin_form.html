@@ -13,9 +13,12 @@
     {{ field.errors }}
     {% comment %} Displaying checkboxes differently {% endcomment %}
     {% if field.name == 'remember_me' %}
-    <p class="checkbox">
-    <label for="id_{{ field.name }}">{{ field }} {{ field.label }}</label>
-    </p>
+    {% comment %}
+      Custom disable 'remember' checkbox 
+      <p class="checkbox">
+      <label for="id_{{ field.name }}">{{ field }} {{ field.label }}</label>
+      </p>
+    {% endcomment %}
     {% else %}
     <p>
     {{ field.label_tag }}
