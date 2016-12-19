@@ -42,7 +42,8 @@ INSTALLED_APPS = (
     'easy_thumbnails',
     'userena',
     'accounts',
-    'django_extensions'
+    'django_extensions', 
+    'projects'
 )
 
 MIDDLEWARE_CLASSES = (
