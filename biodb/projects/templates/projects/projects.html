@@ -7,8 +7,9 @@
     <h2>Project list:</h2>
     <ul>
         {% for project in object_list %}
-            <li>{{ project.name }}</li>
+            <li><a href="{% url 'projects:project_detail' project.pk %}">{{ project.name }}</a></li>
         {% endfor %}
     </ul>
+    <p>User: {{ request.user }}</p>
 </body>
 </html>
