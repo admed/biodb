@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project detail</title>
+</head>
+<body>
+<h1>Project detail</h1>
+<p>Name: {{ object.name }}</p>
+<p>Description: {{ object.description }}</p>
+<h3><a href="{% url 'projects:project_update' object.pk %}">Edit</a></h3>
+</body>
+</html>
