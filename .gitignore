@@ -29,3 +29,5 @@ build/
 
 # uploads 
 
+# migrating files 
+00*.py
