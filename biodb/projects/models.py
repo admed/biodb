@@ -10,3 +10,6 @@ class Project(models.Model):
         permissions = (
             ('can_visit', 'Can visit project details'),
         )
+
+    def __str__(self):
+        return self.name
