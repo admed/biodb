@@ -8,26 +8,23 @@ from models import Project
 from guardian.mixins import PermissionRequiredMixin, PermissionListMixin, LoginRequiredMixin
 
 
+
 # Create your views here.
 def redirect_to_home(request):
     ''' In case of request '/' redirect to '/projects/' '''  
     return redirect(to=settings.HOME_URL)
 
-class ProjectsView(LoginRequiredMixin, PermissionListMixin, generic.ListView):
+class ProjectListView(LoginRequiredMixin, PermissionListMixin, generic.ListView):
     permission_required = 'projects.can_visit'
-    template_name = 'projects/projects.html'
+    template_name = 'projects/project_list.html'
     raise_exception = True
     model = Project
-
-    # def get_queryset(self):
-    #     projects = get_objects_for_user(self.request.user, 'projects.can_visit')
-
-    #     return projects
 
 class ProjectDetailView(PermissionRequiredMixin, generic.DetailView):
     permission_required = 'projects.can_visit'
     template_name = 'projects/project_detail.html'
     model = Project
+    slug_field = "name"
 
 class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
     permission_required = 'projects.change_project'
