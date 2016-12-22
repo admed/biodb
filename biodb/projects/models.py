@@ -4,9 +4,10 @@ from simple_history.models import HistoricalRecords
 
 # Create your models here.
 class Project(models.Model):
-    name = models.CharField(max_length=100)
-    create_date = models.DateField()
-    description = models.TextField()
+    # slug field!
+    name = models.CharField(max_length=100, null=True)
+    create_date = models.DateField(null=True)
+    description = models.TextField(null=True)
 
     class Meta():
         permissions = (
@@ -14,11 +15,6 @@ class Project(models.Model):
         )
 
     def __str__(self):
-<<<<<<< Updated upstream
-        return self.name
-||||||| merged common ancestors
-        return self.name
-=======
         return self.name
 
 class Name(models.Model):
@@ -53,9 +49,3 @@ class RObject(models.Model):
     notes = RichTextField()
     tags = models.ForeignKey(Tag)
     files = models.ForeignKey(MoleculeFile)
-
-
-
-
-
->>>>>>> Stashed changes
