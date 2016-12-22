@@ -49,7 +49,10 @@ class ProjectsViewsTests(TestCase):
         self.assertEqual(resp.status_code, 200)
 
     def test_RobjectListView(self):
-        pass 
+        resp = self.c.get(reverse("projects:robject_list"))
+
+        self.assertTemplateUsed(resp, 'projects/robject_list.html')
+        self.assertEqual(resp.status_code, 200) 
 
     def test_RobjectDetailView(self):
         pass
