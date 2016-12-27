@@ -42,37 +42,37 @@ class ProjectsViewsTests(TestCase):
         self.assertTemplateUsed(resp, 'projects/project_list.html')
         self.assertEqual(resp.status_code, 200)
 
-    def test_ProjectDetailView(self):
-        resp = self.c.get(reverse("projects:project_detail", kwargs={"slug":"test_project"}))
+    # def test_ProjectDetailView(self):
+    #     resp = self.c.get(reverse("projects:project_detail", kwargs={"slug":"test_project"}))
         
-        self.assertTemplateUsed(resp, 'projects/project_detail.html')
-        self.assertEqual(resp.status_code, 200)
+    #     self.assertTemplateUsed(resp, 'projects/project_detail.html')
+    #     self.assertEqual(resp.status_code, 200)
 
-    def test_RobjectListView(self):
-        resp = self.c.get(reverse("projects:robject_list"))
+    # def test_RobjectListView(self):
+    #     resp = self.c.get(reverse("projects:robject_list"))
 
-        self.assertTemplateUsed(resp, 'projects/robject_list.html')
-        self.assertEqual(resp.status_code, 200) 
+    #     self.assertTemplateUsed(resp, 'projects/robject_list.html')
+    #     self.assertEqual(resp.status_code, 200) 
 
-    def test_RobjectDetailView(self):
-        pass
+    # def test_RobjectDetailView(self):
+    #     pass
 
-    def test_RobjectCreateView(self):
-        pass
+    # def test_RobjectCreateView(self):
+    #     pass
 
-    def test_RobjectUpdateView(self):
-        pass
+    # def test_RobjectUpdateView(self):
+    #     pass
 
-    def test_RobjectDeleteView(self):
-        pass
+    # def test_RobjectDeleteView(self):
+    #     pass
 
-    def test_BioObjCreateView(self):
-        pass
+    # def test_BioObjCreateView(self):
+    #     pass
 
-    def test_BioObjUpdateView(self):
-        pass
+    # def test_BioObjUpdateView(self):
+    #     pass
 
-    def test_BioObjDeleteView(self):
-        pass
+    # def test_BioObjDeleteView(self):
+    #     pass
 
 
