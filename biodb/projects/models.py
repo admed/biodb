@@ -20,19 +20,19 @@ class Project(models.Model):
         return self.name
 
 class Name(models.Model):
-    title = models.CharField()
-    primary = models.CharField()
+    title = models.CharField(max_length=100)
+    primary = models.CharField(max_length=100)
 
 class Tag(models.Model):
-    name = models.CharField()
+    name = models.CharField(max_length=100)
 
 class MoleculeFile(models.Model):
     file = models.FileField()
-    description = models.RichTextField()
+    description = RichTextField()
 
 class BioObj(models.Model):
-    ligand = models.CharField()
-    receptor = models.CharField()
+    ligand = models.CharField(max_length=100)
+    receptor = models.CharField(max_length=100)
     ref_seq = RichTextField()
     mod_seq = RichTextField()
     description = RichTextField()
@@ -44,8 +44,8 @@ class RObject(models.Model):
     names = models.ForeignKey(Name)
     create_date = models.DateField()
     history = HistoricalRecords()
-    author = models.CharField()
-    creator = models.CharField()
+    author = models.CharField(max_length=100)
+    creator = models.CharField(max_length=100)
     bio_obj = models.ForeignKey(BioObj)
     # sample = models.ForeignKey(Sample)
     notes = RichTextField()
