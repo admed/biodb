@@ -1,7 +1,7 @@
 from biodb import settings
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from mixins import LoginRequiredMixin
+from .mixins import LoginRequiredMixin
 from django.views import generic
 
 

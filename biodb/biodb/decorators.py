@@ -1,5 +1,5 @@
 from django.shortcuts import redirect
-import settings
+from . import settings
 
 # source: https://passingcuriosity.com/2009/writing-view-decorators-for-django/
 
