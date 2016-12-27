@@ -1,15 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Cokolwiek</title>
-</head>
-<body>
-    <h2>Project list:</h2>
-    <ul>
-        {% for project in object_list %}
-            <li><a href="{% url 'projects:project_detail' project.name %}">{{ project.name }}</a></li>
-        {% endfor %}
-    </ul>
-    <p>User: {{ request.user }}</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% load static %}
+{% block extra_head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'projects/css/project_list.css' %}">
+{% endblock extra_head %}
+{% block content %}
+    {% for project in projects %}
+        <div class="project">
+            <div class="name">
+                <a href="{% url 'projects:project_detail' project.name %}">{{ project.name }}</a>
+            </div>
+            <div class="date">
+                {{ project.create_date }}
+            </div>
+            <div class="description">
+                {{ project.description }}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock content %}
