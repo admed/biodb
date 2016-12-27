@@ -19,6 +19,7 @@ class ProjectListView(LoginRequiredMixin, PermissionListMixin, generic.ListView)
     template_name = 'projects/project_list.html'
     raise_exception = True
     model = Project
+    context_object_name = "projects"
 
 class ProjectDetailView(PermissionRequiredMixin, generic.DetailView):
     permission_required = 'projects.can_visit'
