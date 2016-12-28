@@ -13,7 +13,7 @@ class Project(models.Model):
 
     class Meta():
         permissions = (
-            ('can_visit', 'Can visit project details'),
+            ('can_visit_project', 'Can visit project details'),
         )
 
     def __str__(self):
@@ -41,13 +41,15 @@ class BioObj(models.Model):
     ref_clinical = RichTextField()
 
 class RObject(models.Model):
-    names = models.ForeignKey(Name)
-    create_date = models.DateField()
+    project = models.ForeignKey(Project, null=True)
+    names = models.ForeignKey(Name, null=True, blank=True)
+    create_date = models.DateField(null=True)
     history = HistoricalRecords()
-    author = models.CharField(max_length=100)
-    creator = models.CharField(max_length=100)
-    bio_obj = models.ForeignKey(BioObj)
+    author = models.CharField(max_length=100, null=True)
+    creator = models.CharField(max_length=100, null=True)
+    bio_obj = models.ForeignKey(BioObj, null=True, blank=True)
     # sample = models.ForeignKey(Sample)
-    notes = RichTextField()
-    tags = models.ForeignKey(Tag)
-    files = models.ForeignKey(MoleculeFile)
+    # notes = RichTextField() # FIXME admin site problems!
+    tags = models.ForeignKey(Tag, null=True, blank=True)
+    files = models.ForeignKey(MoleculeFile, null=True, blank=True)
+
