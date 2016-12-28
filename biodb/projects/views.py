@@ -2,7 +2,7 @@ from biodb import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import Group
 # from django.http import HttpResponse
-# from mixins import LoginRequiredMixin
+from mixins import ProjectPermissionMixin
 from django.views import generic
 from models import Project, RObject
 # from guardian.shortcuts import get_objects_for_user
@@ -21,7 +21,7 @@ class ProjectListView(LoginRequiredMixin, PermissionListMixin, generic.ListView)
     model = Project
     context_object_name = "projects"
 
-class RObjectListView(PermissionRequiredMixin, generic.ListView):
+class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, generic.ListView):
     permission_required = 'projects.can_visit_project'
     template_name = 'projects/RObject_list.html'
     model = RObject
@@ -33,11 +33,7 @@ class RObjectListView(PermissionRequiredMixin, generic.ListView):
         project = self.get_permission_object()
         return project.robject_set.all()
 
-    def get_permission_object(self): 
-        ''' Return specyfic Project instance for permission check. '''
-        project = get_object_or_404(Project, name=self.kwargs["project_name"])
-        # project = Project.objects.get(name=self.kwargs["project_name"])
-        return project
+
 
 class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
     permission_required = 'projects.change_project'
