@@ -1,1 +1,9 @@
 {% extends "base.html" %}
+{% block content %}
+    <h2>RObject list:</h2>
+    <ul>
+    {% for robject in robjects %}
+        <li>{{ robject }}</li>
+    {% endfor %}
+    </ul>
+{% endblock content %}
