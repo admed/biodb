@@ -1,6 +1,7 @@
 from django.db import models
 from ckeditor.fields import RichTextField
 from simple_history.models import HistoricalRecords
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -43,7 +44,7 @@ class RObject(models.Model):
     create_date = models.DateField(null=True)
     history = HistoricalRecords()
     author = models.CharField(max_length=100, null=True)
-    creator = models.CharField(max_length=100, null=True)
+    creator = models.ForeignKey(User, null=True)
     bio_obj = models.ForeignKey(BioObj, null=True, blank=True)
     # notes = RichTextField() # FIXME admin site problems!
     tags = models.ForeignKey(Tag, null=True, blank=True)
