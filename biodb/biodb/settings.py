@@ -44,7 +44,8 @@ INSTALLED_APPS = (
     'accounts',
     'django_extensions', 
     'projects',
-    'biodb'
+    'biodb', 
+    'django_tables2'
 )
 
 MIDDLEWARE_CLASSES = (
