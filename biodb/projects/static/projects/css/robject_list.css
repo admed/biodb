@@ -1,3 +1,19 @@
 .selection {
     width: 40px;
 }
+
+.action-menu {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+}
+
+.action {
+    /*float: left;*/
+    /*clear: left;*/
+}
+
+.search input, .search button {
+    height: 100%;
+}
