@@ -19,9 +19,11 @@ class CustomCheckBoxColumn(tables.CheckBoxColumn):
 class RObjectTable(tables.Table):
     selection = CustomCheckBoxColumn(accessor='id', orderable=False, attrs={'td__input': {'class': 'select-robject', 'form': 'id_action_posts', 'onchange': 'actionCounter();', 'value':'none'}, 
                                                                              "th__input": {"class": "select-all"}})
+    # display column with names of robjects
+    name = tables.Column()
     class Meta:
         model = RObject
         attrs = {"class":"table table-hover"}
         exclude = ["files", "tags", "author", "project"]
-        sequence = ["selection", "id", "bio_obj", "creator", "create_date"]
+        sequence = ["selection", "id", "name", "bio_obj", "creator", "create_date"]
         order_by = ['-id']
