@@ -2,9 +2,36 @@
 {% load render_table from django_tables2 %}
 {% load static %}
 {% block extra_head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'projects/css/robject_list.css' %}">
     <script src="{% static 'projects/js/robject_list.js' %}"></script>
 {% endblock extra_head %}
 {% block content %}
-    <h2>Research objects:</h2>
+<!-- ACTION MENU -->
+    <div class="action-menu">
+    <!-- ACTIONS -->
+        <div class="dropdown actions">
+            <button class="btn dropdown-toggle" data-toggle="dropdown">
+                Actions
+                <span class="glyph caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a href="#">show detail</a></li>
+                <li><a href="#">delete</a></li>
+            </ul>
+        </div>
+    <!-- END ACTIONS -->
+    <!-- SEARCH BAR -->
+        <form class="search">
+            <input type="text" name="">
+            <button class="btn">
+                <span class="glyphicon glyphicon-search"></span>
+            </button>
+        </form>
+    <!-- END SEARCH BAR -->
+    </div>
+<!-- END ACTION MENU -->
     {% render_table table %}
+    <form action="" method="post">
+        
+    </form>
 {% endblock content %}
