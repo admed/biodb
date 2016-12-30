@@ -46,7 +46,7 @@ class RObject(models.Model):
     author = models.CharField(max_length=100, null=True)
     creator = models.ForeignKey(User, null=True)
     bio_obj = models.ForeignKey(BioObj, null=True, blank=True)
-    # notes = RichTextField() # FIXME admin site problems!
+    notes = RichTextField(null=True) # FIXME admin site problems!
     tags = models.ForeignKey(Tag, null=True, blank=True)
     files = models.ForeignKey(MoleculeFile, null=True, blank=True)
 
