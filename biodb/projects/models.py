@@ -58,6 +58,11 @@ class RObject(models.Model):
             # get related Name model with primary=True
             name = self.name_set.all().get(primary=True)
             return name.title
+
+    @property
+    def name(self):
+        return self.name_set.get(primary=True).title
+
             
 
 class Name(models.Model):
