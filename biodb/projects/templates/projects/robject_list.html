@@ -21,8 +21,8 @@
         </div>
     <!-- END ACTIONS -->
     <!-- SEARCH BAR -->
-        <form class="search">
-            <input type="text" name="">
+        <form class="search" action="." method="get">
+            <input type="text" name="query">
             <button class="btn">
                 <span class="glyphicon glyphicon-search"></span>
             </button>
@@ -31,7 +31,4 @@
     </div>
 <!-- END ACTION MENU -->
     {% render_table table %}
-    <form action="" method="post">
-        
-    </form>
 {% endblock content %}
