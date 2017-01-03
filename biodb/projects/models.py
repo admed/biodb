@@ -2,6 +2,9 @@ from django.db import models
 from ckeditor.fields import RichTextField
 from simple_history.models import HistoricalRecords
 from django.contrib.auth.models import User
+from watson import search as watson
+# from tables import RObjectTable_fields
+
 
 # Create your models here.
 
@@ -30,6 +33,7 @@ class MoleculeFile(models.Model):
     description = RichTextField()
 
 class BioObj(models.Model):
+    name = models.CharField(max_length=100)
     ligand = models.CharField(max_length=100)
     receptor = models.CharField(max_length=100)
     ref_seq = RichTextField()
@@ -43,25 +47,33 @@ class RObject(models.Model):
     project = models.ForeignKey(Project, null=True)
     create_date = models.DateField(null=True)
     history = HistoricalRecords()
-    author = models.CharField(max_length=100, null=True)
+    author = models.CharField(max_length=100, null=True, blank=True)
     creator = models.ForeignKey(User, null=True)
     bio_obj = models.ForeignKey(BioObj, null=True, blank=True)
-    notes = RichTextField(null=True) # FIXME admin site problems!
+    notes = RichTextField(null=True, blank=True) 
     tags = models.ForeignKey(Tag, null=True, blank=True)
     files = models.ForeignKey(MoleculeFile, null=True, blank=True)
 
     def __str__(self):
-        if not self.name_set.all():
-            # create temporary, working title 
-            return "noname robject, created at {}, by {}".format(self.create_date, self.author)
-        else:
-            # get related Name model with primary=True
-            name = self.name_set.all().get(primary=True)
-            return name.title
+        return self.name
 
     @property
-    def name(self):
-        return self.name_set.get(primary=True).title
+    def name(self): # method treated like attribute (cool!)
+        try:
+            # get related Name model with primary=True
+            name = self.name_set.get(primary=True).title
+        except:
+            # create temporary, working title 
+            name = "noname robject, created at {}, by {}".format(self.create_date, self.author)
+
+        return name
+
+    @staticmethod
+    def get_search_fields():
+        ''' Return list with fields names included in watson search (except relations) '''
+        
+        # exceptions handles during watson.register below
+        return ["pk", "name", "author"]
 
             
 
@@ -69,3 +81,10 @@ class Name(models.Model):
     title = models.CharField(max_length=100)
     primary = models.BooleanField(blank=True)
     robject = models.ForeignKey(RObject, null=True)
+
+    def __str__(self):
+        return self.title
+
+watson.register(RObject, fields=["creator__username", "bio_obj__name"]+RObject.get_search_fields())
+watson.register(User)
+watson.register(BioObj)
