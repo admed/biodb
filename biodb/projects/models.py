@@ -3,7 +3,6 @@ from ckeditor.fields import RichTextField
 from simple_history.models import HistoricalRecords
 from django.contrib.auth.models import User
 from watson import search as watson
-# from tables import RObjectTable_fields
 
 
 # Create your models here.
