@@ -24,6 +24,7 @@ class RObjectTable(tables.Table):
     class Meta:
         model = RObject
         attrs = {"class":"table table-hover"}
-        exclude = ["files", "tags", "author", "project"]
-        sequence = ["selection", "id", "name", "bio_obj", "creator", "create_date"]
+        # exclude = ["files", "tags", "author", "project"]
+        fields = ["selection", "id", "name", "bio_obj", "creator", "create_date", "notes"]
         order_by = ['-id']
+
