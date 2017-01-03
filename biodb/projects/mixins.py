@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from models import Project
+from watson import search as watson
 
 
 class ProjectPermissionMixin():
@@ -10,3 +11,10 @@ class ProjectPermissionMixin():
 
         project = get_object_or_404(Project, name=self.kwargs["project_name"])
         return project
+
+class SearchMixin():
+    ''' Mixin for use in views, where user can search through model/models records '''
+
+    def search(self, queryset, query, *args, **kwargs):
+        return watson.filter(queryset, query)
+
