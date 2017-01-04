@@ -1,0 +1,29 @@
+<form class="search" action="." method="get">
+    <button type="button" class="btn">
+        <span class="glyphicon glyphicon-cog"></span>
+    </button>
+    <div class="search-input-wrapper filter-dropdown">
+        {{ form.phrase }}
+        {% comment %}
+        <input type="text" name="query">
+        {% endcomment %}
+        <div class="filter-dropdown-content form-group" tabindex="-1">
+            {% for field in form %}
+                {% if not field.name == 'phrase' %}
+                    <div class="filter-input">
+                        {{ field.errors }}
+                        {{ field }}
+                        {% if field.help_text %}
+                        <p class="help">{{ field.help_text|safe }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <button class="btn">
+        <span class="glyphicon glyphicon-search"></span>
+    </button>
+</form>
+    
+
