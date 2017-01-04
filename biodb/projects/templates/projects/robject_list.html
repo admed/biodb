@@ -9,26 +9,14 @@
 <!-- ACTION MENU -->
     <div class="action-menu">
     <!-- ACTIONS -->
-        <div class="dropdown actions">
-            <button class="btn dropdown-toggle" data-toggle="dropdown">
-                Actions
-                <span class="glyph caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-                <li><a href="#">show detail</a></li>
-                <li><a href="#">delete</a></li>
-            </ul>
-        </div>
+       {% include "projects/robject_list_snippets/actions.html" %}
     <!-- END ACTIONS -->
     <!-- SEARCH BAR -->
-        <form class="search" action="." method="get">
-            <input type="text" name="query">
-            <button class="btn">
-                <span class="glyphicon glyphicon-search"></span>
-            </button>
-        </form>
+        {% include "projects/robject_list_snippets/search_bar.html" %}
     <!-- END SEARCH BAR -->
     </div>
 <!-- END ACTION MENU -->
+<!-- TABLE -->
     {% render_table table %}
+<!-- END TABLE -->
 {% endblock content %}
