@@ -7,7 +7,8 @@ from models import Project, RObject
 # from guardian.shortcuts import get_objects_for_user
 from guardian.mixins import PermissionRequiredMixin, PermissionListMixin, LoginRequiredMixin
 from tables import RObjectTable
-from django_tables2 import SingleTableView
+from django_tables2 import SingleTableView, SingleTableMixin
+from forms import SearchFilterForm
 
 
 # Create your views here.
@@ -22,23 +23,27 @@ class ProjectListView(LoginRequiredMixin, PermissionListMixin, generic.ListView)
     model = Project
     context_object_name = "projects"
 
-class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTableView, SearchMixin):
+class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTableMixin, generic.FormView, SearchMixin):
     permission_required = 'projects.can_visit_project'
     template_name = 'projects/robject_list.html'
     model = RObject
     raise_exception = True
     table_class = RObjectTable
+    form_class = SearchFilterForm
 
-    def get_queryset(self, *args, **kwargs):
-        ''' Limit robjects to those related to project ''' 
+    def get_table_data(self):
+        ''' Limit robjects to those related to project. Enable searching. ''' 
 
+        # get project instance
         project = self.get_permission_object()
+        # get all related robjects
         queryset = project.robject_set.all()
-        query = self.request.GET.get("query", None)
 
+        # perforn searching
+        query = self.request.GET.get("query", None)
         if query:
             queryset = self.search(queryset=queryset, query=query)
-        
+
         return queryset
 
 class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
