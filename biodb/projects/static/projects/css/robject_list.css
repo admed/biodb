@@ -14,6 +14,21 @@
     /*clear: left;*/
 }
 
-.search input, .search button {
+.search-input-wrapper, .search input, .search button {
     height: 100%;
+}
+
+.search-input-wrapper {
+    display: inline-block;
+    position: relative;
+}
+.filter-dropdown-content {
+    position: absolute;
+    border: solid thin;
+    top: 102%;
+    /*width: 100%;*/
+    background-color: white;
+    padding: 10px;
+    display: none;
+    outline: none;
 }
