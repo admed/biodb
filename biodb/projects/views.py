@@ -46,23 +46,26 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
         # get all related robjects
         queryset = project.robject_set.all()
 
-        # include searching
-        queryset = self.search(queryset)
+        if self.form_processing:
+            # include searching
+            queryset = self.search(queryset=queryset, query=self.query)
+            # include filtering
+            queryset = self.filter(
+                queryset=queryset, after=self.after_date, before=self.before_date)
 
         return queryset
 
-    def search(self, queryset):
-        ''' Perform search '''
-        if hasattr(self, 'query'):
-            queryset = SearchMixin.search(
-                self, queryset=queryset, query=self.query)
-
+    def filter(self, queryset, after, before):
+        ''' Perform filter '''
+        if after: queryset = queryset.filter(create_date__gte=after)
+        if before: queryset = queryset.filter(create_date__lte=before)
         return queryset
-
-    def filter(self):
-        pass
 
     def form_valid(self, form):
+        print "----> {}".format(form.cleaned_data)
+        # set flag for get_table_data()
+        self.form_processing = True
+
         # store data from form.cleaned_data as instance attrs
         for key, value in form.cleaned_data.iteritems():
             setattr(self, key, value)
