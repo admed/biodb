@@ -1,17 +1,15 @@
-<form class="search" action="." method="get">
+<form class="search" action="" method="post">
+    {% csrf_token %}
     <button type="button" class="btn filter-dropdown-toggle">
         <span class="glyphicon glyphicon-cog"></span>
     </button>
     <div class="search-input-wrapper filter-dropdown">
         {{ form.query }}
-        {% comment %}
-        <input type="text" name="query">
-        {% endcomment %}
         <div class="filter-dropdown-content form-group" tabindex="-1">
             {% for field in form %}
                 {% if not field.name == 'query' %}
                     <div class="filter-input">
-                        {{ field.errors }}
+                        <p>{{ field.errors }}</p>
                         {{ field }}
                         {% if field.help_text %}
                         <p class="help">{{ field.help_text|safe }}</p>
