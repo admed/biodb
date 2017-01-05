@@ -14,8 +14,9 @@ from django.http import HttpResponse
 
 # Create your views here.
 def redirect_to_home(request):
-    ''' In case of request '/' redirect to '/projects/' '''  
+    ''' In case of request '/' redirect to '/projects/' '''
     return redirect(to=settings.HOME_URL)
+
 
 class ProjectListView(LoginRequiredMixin, PermissionListMixin, generic.ListView):
     permission_required = 'projects.can_visit_project'
@@ -23,6 +24,7 @@ class ProjectListView(LoginRequiredMixin, PermissionListMixin, generic.ListView)
     raise_exception = True
     model = Project
     context_object_name = "projects"
+
 
 class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTableMixin, generic.FormView, SearchMixin):
     permission_required = 'projects.can_visit_project'
@@ -34,7 +36,8 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
     success_url = "."
 
     def get_table_data(self):
-        ''' Limit objects in table as result to: a) project related permission, b) searching query ''' 
+        ''' Limit objects in table as result to: a) project related permission, b) searching query,
+            c) date filtering '''
 
         # include permissions
 
@@ -42,29 +45,39 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
         project = self.get_permission_object()
         # get all related robjects
         queryset = project.robject_set.all()
-        
-        # include searching
-        if hasattr(self, 'query'):
+
+        if hasattr(self, "cleaned_data"):
+            # include searching
             queryset = self.search(queryset=queryset, query=self.query)
+            # include filtering
+            queryset = self.filter(
+                queryset=queryset, after=self.after_date, before=self.before_date)
 
         return queryset
 
+    def filter(self, queryset, after, before):
+        ''' Perform filter '''
+        if after: queryset = queryset.filter(create_date__gte=after)
+        if before: queryset = queryset.filter(create_date__lte=before)
+        return queryset
+
     def form_valid(self, form):
-        # store query from cleaned data
-        self.query = form.cleaned_data.get("query")
-        
+        self.cleaned_data = form.cleaned_data
+
+        # store data from form.cleaned_data as instance attrs
+        for key, value in form.cleaned_data.iteritems():
+            setattr(self, key, value)
+
         context = self.get_context_data()
-        
+
         # display form instead of redirect
-        context.update({'form':form})
+        context.update({'form': form})
 
         return render(self.request, self.template_name, context)
+
 
 class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
     permission_required = 'projects.change_project'
     raise_exception = True
     model = Project
     fields = ["name", "description"]
-
-
-
