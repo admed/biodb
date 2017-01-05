@@ -104,10 +104,11 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
+USE_L10N = False # Changed from True (django-tables date format!) 
 
 USE_TZ = True
 
+SHORT_DATETIME_FORMAT = "d-m-Y P" # FIXME: django-tables2 dont concern about this setting !
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -142,3 +143,6 @@ DEFAULT_TO_EMAIL = 'adrian.jasinski@adamed.com.pl'
 
 # USERENA_SIGNIN_REDIRECT_URL = '/accounts/%(username)s/'
 SITE_ID = 2
+
+USE_L10N = False 
+
