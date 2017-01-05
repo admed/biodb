@@ -1,5 +1,5 @@
 Django>=1.8
 django-userena>=2.0.0
-django-tables>=1.2.9
+django_tables2>=1.2.9
 django-ckeditor>=5.1.1
 django-simple-history>=1.8.1
