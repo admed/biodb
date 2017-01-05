@@ -9,6 +9,7 @@ from guardian.mixins import PermissionRequiredMixin, PermissionListMixin, LoginR
 from tables import RObjectTable
 from django_tables2 import SingleTableView, SingleTableMixin
 from forms import SearchFilterForm
+from django.http import HttpResponse
 
 
 # Create your views here.
@@ -30,21 +31,34 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
     raise_exception = True
     table_class = RObjectTable
     form_class = SearchFilterForm
+    success_url = "."
 
     def get_table_data(self):
-        ''' Limit robjects to those related to project. Enable searching. ''' 
+        ''' Limit objects in table as result to: a) project related permission, b) searching query ''' 
+
+        # include permissions
 
         # get project instance
         project = self.get_permission_object()
         # get all related robjects
         queryset = project.robject_set.all()
-
-        # perforn searching
-        query = self.request.GET.get("query", None)
-        if query:
-            queryset = self.search(queryset=queryset, query=query)
+        
+        # include searching
+        if hasattr(self, 'query'):
+            queryset = self.search(queryset=queryset, query=self.query)
 
         return queryset
+
+    def form_valid(self, form):
+        # store query from cleaned data
+        self.query = form.cleaned_data.get("query")
+        
+        context = self.get_context_data()
+        
+        # display form instead of redirect
+        context.update({'form':form})
+
+        return render(self.request, self.template_name, context)
 
 class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
     permission_required = 'projects.change_project'
