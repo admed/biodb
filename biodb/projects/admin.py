@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import Project, RObject, Name
+from .models import Project, RObject, Name
 from guardian.admin import GuardedModelAdmin
 
 # Register your models here.
