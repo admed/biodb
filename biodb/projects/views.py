@@ -46,7 +46,7 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
         # get all related robjects
         queryset = project.robject_set.all()
 
-        if self.form_processing:
+        if hasattr(self, "cleaned_data"):
             # include searching
             queryset = self.search(queryset=queryset, query=self.query)
             # include filtering
@@ -62,9 +62,7 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
         return queryset
 
     def form_valid(self, form):
-        print "----> {}".format(form.cleaned_data)
-        # set flag for get_table_data()
-        self.form_processing = True
+        self.cleaned_data = form.cleaned_data
 
         # store data from form.cleaned_data as instance attrs
         for key, value in form.cleaned_data.iteritems():
