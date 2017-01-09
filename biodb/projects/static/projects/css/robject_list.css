@@ -32,3 +32,12 @@
     display: none;
     outline: none;
 }
+
+.actions .dropdown-menu {
+    /*height: 100%;*/
+}
+
+.action-link {
+    display: block;
+    width: 100%;
+} 

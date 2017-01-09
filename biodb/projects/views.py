@@ -30,7 +30,7 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
     permission_required = 'projects.can_visit_project'
     template_name = 'projects/robject_list.html'
     model = RObject
-    raise_exception = True
+    # raise_exception = True
     table_class = RObjectTable
     form_class = SearchFilterForm
     success_url = "."
@@ -71,7 +71,7 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
         context = self.get_context_data()
 
         # display form instead of redirect
-        context.update({'form': form})
+        context.update({'form': self.form_class()})
 
         return render(self.request, self.template_name, context)
 

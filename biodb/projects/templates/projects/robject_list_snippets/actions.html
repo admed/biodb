@@ -3,12 +3,11 @@
         Actions
         <span class="glyph caret"></span>
     </button>
-    <ul class="dropdown-menu">
-        <li>
-            <a href="#">show detail</a>
-        </li>
-        <li>
-            <a href="#">delete</a>
-        </li>
+    <ul class="dropdown-menu" >
+        <form id="actions" method="post">
+            {% csrf_token %}
+            <button class="action-link" type="submit" formaction=".">Delete</button>
+            <button class="action-link" type="submit" formaction=".">Show details</button>
+        </form>
     </ul>
 </div>
