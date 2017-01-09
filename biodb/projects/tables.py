@@ -6,18 +6,19 @@ class CustomCheckBoxColumn(tables.CheckBoxColumn):
     ''' Custom class that inherits from tables.CheckBoxColumn and customize render method. '''
 
     def render(self, value, bound_column, record):
-        ''' Customized render method that allow to replace name attr in all td checkbox inputs '''
+        ''' Customized render method that allow to modify all td checkbox inputs '''
 
         from django.utils.safestring import mark_safe
         
+        # get input html string
         input_html = super(CustomCheckBoxColumn, self).render(value, bound_column, record)
-        # replace previous name attr value with record.id (robject.id in fact)
-        input_html = re.sub('name=".*?"', 'name="{}"'.format(record.id), input_html)
+        # replace previous name attr in <input/> string with 'robject_{robject.id}'
+        input_html = re.sub('name=".*?"', 'name="robject_{}"'.format(record.id), input_html)
         
         return mark_safe(input_html) 
 
 class RObjectTable(tables.Table):
-    selection = CustomCheckBoxColumn(accessor='id', orderable=False, attrs={'td__input': {'class': 'select-robject', 'form': 'id_action_posts', 'onchange': 'actionCounter();', 'value':'none'}, 
+    selection = CustomCheckBoxColumn(accessor='id', orderable=False, attrs={'td__input': {'class': 'select-robject', 'form': 'actions'}, 
                                                                              "th__input": {"class": "select-all"}})
     # display column with names of robjects
     name = tables.Column()
