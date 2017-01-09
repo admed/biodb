@@ -17,7 +17,8 @@ class ProjectsModelsTests(TestCase):
         cls.robject_noname = RObject.objects.create(author="Piotr Nowak")
         # robject with Name (id=2)
         cls.robject_name = RObject.objects.create(author="Piotr Nowak")
-        Name.objects.create(title="C3P0", primary=True,
+        
+        cls.name = Name.objects.create(title="C3P0", primary=True,
                             robject=cls.robject_name)
 
     def test_Project__str__method(self):
@@ -28,8 +29,11 @@ class ProjectsModelsTests(TestCase):
         self.assertEqual(fields, ["pk", "name", "author"])
 
     def test_RObject_name_method(self):
-        noname = "noname robject, created at 2001-01-31, by Piotr Nowak"
-        self.assertEqual(self.robject_noname.name, noname)
+        # expected name for robject_noname
+        default_name = "noname robject, created at 2001-01-31, by Piotr Nowak"
+        self.assertEqual(self.robject_noname.name, default_name)
         self.assertEqual(self.robject_name.name, "C3P0")
 
 
+    def test_Name__str__method(self):
+        self.assertEqual(str(self.name), "C3P0")
