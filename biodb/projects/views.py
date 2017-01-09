@@ -1,5 +1,5 @@
 from biodb import settings
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 # from django.http import HttpResponse
 from mixins import ProjectPermissionMixin, SearchMixin
 from django.views import generic
@@ -7,9 +7,9 @@ from models import Project, RObject
 # from guardian.shortcuts import get_objects_for_user
 from guardian.mixins import PermissionRequiredMixin, PermissionListMixin, LoginRequiredMixin
 from tables import RObjectTable
-from django_tables2 import SingleTableView, SingleTableMixin
+from django_tables2 import SingleTableMixin
 from forms import SearchFilterForm
-from django.http import HttpResponse
+# from django.http import HttpResponse
 
 
 # Create your views here.
@@ -36,7 +36,7 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
     success_url = "."
 
     def get_table_data(self):
-        ''' Limit objects in table as result to: a) project related permission, b) searching query,
+        ''' Limit objects in table using: a) project related permission, b) searching query,
             c) date filtering '''
 
         # include permissions
@@ -53,12 +53,6 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
             queryset = self.filter(
                 queryset=queryset, after=self.after_date, before=self.before_date)
 
-        return queryset
-
-    def filter(self, queryset, after, before):
-        ''' Perform filter '''
-        if after: queryset = queryset.filter(create_date__gte=after)
-        if before: queryset = queryset.filter(create_date__lte=before)
         return queryset
 
     def form_valid(self, form):
