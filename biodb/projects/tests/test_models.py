@@ -1,11 +1,10 @@
 from django.test import TestCase
 from projects.models import Project, RObject, Name
-from freezegun import freeze_time 
+from datetime import date
 # from django.core.urlresolvers import reverse
 # from guardian.shortcuts import has_
 
 
-@freeze_time("2001-01-31") # set and stop the clock
 class ProjectsModelsTests(TestCase):
 
     @classmethod
@@ -14,7 +13,7 @@ class ProjectsModelsTests(TestCase):
         # create models instances
         cls.project = Project.objects.create(name="testing_project")
         # robject without Name (id=1)
-        cls.robject_noname = RObject.objects.create(author="Piotr Nowak")
+        cls.robject_noname = RObject.objects.create(author="Piotr Nowak", create_date=date(2001, 01, 31))
         # robject with Name (id=2)
         cls.robject_name = RObject.objects.create(author="Piotr Nowak")
         
@@ -30,7 +29,7 @@ class ProjectsModelsTests(TestCase):
 
     def test_RObject_name_method(self):
         # expected name for robject_noname
-        default_name = "noname robject, created at 2001-01-31, by Piotr Nowak"
+        default_name = "noname robject, created at 2001-01-31, by Piotr Nowak" # FIXME: date
         self.assertEqual(self.robject_noname.name, default_name)
         self.assertEqual(self.robject_name.name, "C3P0")
 
