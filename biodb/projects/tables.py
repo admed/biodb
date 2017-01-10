@@ -1,21 +1,35 @@
 import django_tables2 as tables
 from models import RObject
-import re
+from bs4 import BeautifulSoup
 
 class CustomCheckBoxColumn(tables.CheckBoxColumn):
     ''' Custom class that inherits from tables.CheckBoxColumn and customize render method. '''
 
     def render(self, value, bound_column, record):
-        ''' Customized render method that allow to modify all td checkbox inputs '''
+        ''' Customized CheckBoxColumn.render() method: allow to modify checkbox inputs name attr in table's <td> 
+        (ugly way but attrs kwarg in CheckBoxColumn not working in this case) '''
 
         from django.utils.safestring import mark_safe
         
         # get input html string
         input_html = super(CustomCheckBoxColumn, self).render(value, bound_column, record)
-        # replace previous name attr in <input/> string with 'robject_{robject.id}'
-        input_html = re.sub('name=".*?"', 'name="robject_{}"'.format(record.id), input_html)
         
-        return mark_safe(input_html) 
+        # modify input name
+        input_html = self.modify_input_name(input_html, record) 
+
+        return mark_safe(input_html)
+
+    @staticmethod
+    def modify_input_name(input_html, record):
+        ''' Change name attr in input using beautiful soup and table record (row) data '''  
+        
+        # get soup
+        soup = BeautifulSoup(input_html, 'html.parser')
+        # get tag
+        tag = soup.input
+        # change name
+        tag["name"] = "robject_{}".format(record.id)
+        return str(tag)
 
 class RObjectTable(tables.Table):
     selection = CustomCheckBoxColumn(accessor='id', orderable=False, attrs={'td__input': {'class': 'select-robject', 'form': 'actions'}, 
@@ -28,4 +42,3 @@ class RObjectTable(tables.Table):
         # exclude = ["files", "tags", "author", "project"]
         fields = ["selection", "id", "name", "bio_obj", "creator", "create_date"]
         order_by = ['-id']
-
