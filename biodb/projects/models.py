@@ -44,7 +44,7 @@ class BioObj(models.Model):
 
 class RObject(models.Model):
     project = models.ForeignKey(Project, null=True)
-    create_date = models.DateField(auto_now_add=True, null=True) # TODO: make sure aboyt auto_now_add 
+    create_date = models.DateField(null=True)
     history = HistoricalRecords()
     author = models.CharField(max_length=100, null=True, blank=True)
     creator = models.ForeignKey(User, null=True)
