@@ -13,12 +13,15 @@ class ProjectPermissionMixin():
         return project
 
 class SearchMixin():
-    ''' Mixin for use in views, where user can search/filter models records '''
+    ''' Mixin for use in views, where user can search/filter models records. Methods customized 
+        to work with different types of models. '''
 
     def search(self, queryset, query, *args, **kwargs):
+        ''' Perform search '''
         return watson.filter(queryset, query)
 
-    def filter(self, queryset, after, before):
+    @staticmethod # dont use 'self' instance inside 
+    def filter(queryset, after, before):
         ''' Perform filter '''
         if after: queryset = queryset.filter(create_date__gte=after)
         if before: queryset = queryset.filter(create_date__lte=before)
