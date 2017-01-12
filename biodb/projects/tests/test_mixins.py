@@ -1,7 +1,9 @@
 from django.test import TestCase
-from projects.mixins import ProjectPermissionMixin, SearchMixin
-from projects.models import Project
+from biodb.mixins import ProjectPermissionMixin, SearchMixin
+from biodb import mixins
+from projects.models import Project, RObject
 from datetime import date
+from django.http import Http404
 
 
 class ProjectPermissionMixinTests(TestCase):
@@ -87,3 +89,46 @@ class SearchMixinTests(TestCase):
             Project.objects.all(), after="", before="2003-01-01")
 
         self.assertIn(self.project_3, queryset)
+
+
+class DeleteMultipleMixinTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(DeleteMultipleMixinTests, cls).setUpClass()
+
+        # create imitation of view with kwargs and model attributes
+
+        class View(mixins.DeleteMultipleMixin):
+            model = RObject
+
+            def __init__(self, robject_ids):
+                self.kwargs = {
+                    "robject_ids" : robject_ids 
+                }
+
+        cls.View = View
+
+        # create robjects
+        cls.robject1 = RObject.objects.create()
+        cls.robject2 = RObject.objects.create()
+        cls.robject3 = RObject.objects.create()
+
+    def test_get_object_method(self):
+
+        # query existing robjects
+        queryset = mixins.DeleteMultipleMixin.get_object(self.View("1+2+3"))
+
+        self.assertIn(self.robject1, queryset)
+        self.assertIn(self.robject2, queryset)
+        self.assertIn(self.robject3, queryset)
+
+        # query existing with not existing objects
+        queryset = mixins.DeleteMultipleMixin.get_object(self.View("1+100+3"))
+
+        self.assertIn(self.robject1, queryset)
+        self.assertIn(self.robject3, queryset)
+        
+        # query not existing robjects
+        with self.assertRaisesMessage(Http404, 'No RObject matches the given query.'):
+            queryset = mixins.DeleteMultipleMixin.get_object(self.View("4+5+6"))
+
