@@ -4,9 +4,12 @@
         <span class="glyph caret"></span>
     </button>
     <ul class="dropdown-menu" >
-        <form id="actions" method="post">
+        <form id="actions-form" method="post" action=".">
             {% csrf_token %}
-            <button class="action-link" type="submit" formaction=".">Delete</button>
+            <input type="hidden" name="actions-form" value="true">
+            <button class="action-link" type="submit">
+                Delete
+            </button>
             <button class="action-link" type="submit" formaction=".">Show details</button>
         </form>
     </ul>

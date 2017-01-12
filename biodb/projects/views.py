@@ -1,15 +1,19 @@
 from biodb import settings
 from django.shortcuts import render, redirect
 # from django.http import HttpResponse
-from mixins import ProjectPermissionMixin, SearchMixin
 from django.views import generic
 from models import Project, RObject
 # from guardian.shortcuts import get_objects_for_user
 from guardian.mixins import PermissionRequiredMixin, PermissionListMixin, LoginRequiredMixin
+from biodb import mixins
 from tables import RObjectTable
 from django_tables2 import SingleTableMixin
 from forms import SearchFilterForm
-# from django.http import HttpResponse
+from django.http import HttpResponse
+from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404, get_list_or_404
+from django.http import Http404
+from patches.shortcuts import get_objects_or_404
 
 
 # Create your views here.
@@ -26,7 +30,7 @@ class ProjectListView(LoginRequiredMixin, PermissionListMixin, generic.ListView)
     context_object_name = "projects"
 
 
-class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTableMixin, generic.FormView, SearchMixin):
+class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, SingleTableMixin, generic.FormView, mixins.SearchMixin):
     permission_required = 'projects.can_visit_project'
     template_name = 'projects/robject_list.html'
     model = RObject
@@ -67,8 +71,49 @@ class RObjectListView(ProjectPermissionMixin, PermissionRequiredMixin, SingleTab
         # display form instead of redirect
         context.update({'form': self.form_class()})
 
+        print context
+
         return render(self.request, self.template_name, context)
 
+    def post(self, request, **kwargs):
+        ''' If user come from actions-form, create new url using request.POST and redirect '''
+
+        # get POST dict
+        POST = request.POST.copy()
+
+        # delete token
+        del POST["csrfmiddlewaretoken"]
+
+        # pop 'actions-form' from request.POST (False if none)
+        actions_form = POST.pop("actions-form", False)
+
+        if actions_form and POST:  # check if POST not empty!
+            # collect robject id's
+            ids = POST.keys()
+            # create url
+            url = self.create_url(ids)
+            # redirect
+            return redirect(url)
+
+        return super(RObjectListView, self).post(request, **kwargs)
+
+    def create_url(self, ids):
+        # separate id's by "+" sign
+        robject_ids = "+".join(ids)
+
+        return reverse("projects:robject_delete", kwargs={
+            "robject_ids": robject_ids,
+            "project_name": self.kwargs["project_name"]
+        })
+
+class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleView):
+    ''' View capable to delete more than one Robject! '''
+
+    permission_required = 'projects.can_visit_project'
+    model = RObject
+
+    def get_success_url(self):
+        return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
 
 class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
     permission_required = 'projects.change_project'

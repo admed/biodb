@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+    <form action="" method="post">{% csrf_token %}
+        <p>Are you sure you want to delete following robjects: 
+            <ul>
+            {% for robject in object %} {# object here is QuerySet #}
+                <li>{{ robject }}</li>
+            {% endfor %} 
+            </ul>
+        </p>
+        <input type="submit" value="Confirm" />
+    </form>
+{% endblock content %}
