@@ -21,6 +21,6 @@ class CustomCheckBoxColumnTests(TestCase):
 
         soup = BeautifulSoup(new_input, 'html.parser')
         tag = soup.input
-        self.assertEqual(tag["name"], "robject_1234") 
+        self.assertEqual(tag["name"], "1234") 
 
 
