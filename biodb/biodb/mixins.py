@@ -35,15 +35,17 @@ class SearchMixin():
         return queryset
 
 
-class DeleteMultipleView(DeleteView):
+class DeleteMultipleMixin():
     """
-    View for deleting an objects included in QuerySet object retrieved with `self.get_object()`,
-    with a response rendered by template.
+    Mix it with DeleteView to allow multiple objects deletion ability.
     """
-    pk_separate_by = "+"
+    pk_separate_by = "+" # separation sign in url
 
     def get_object(self):
-        ''' Here object will be QuerySet not model instance ''' 
+        ''' 
+            Extract id's from url part using separator and use them to filter robjects.
+            Raise 404 if no results.
+        ''' 
 
         ids = self.kwargs["robject_ids"].split(self.pk_separate_by)
 

@@ -106,7 +106,7 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
             "project_name": self.kwargs["project_name"]
         })
 
-class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleView):
+class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleMixin, generic.DeleteView):
     ''' View capable to delete more than one Robject! '''
 
     permission_required = 'projects.can_visit_project'
