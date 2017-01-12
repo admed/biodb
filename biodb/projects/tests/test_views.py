@@ -51,16 +51,18 @@ class ProjectListViewTests(ProjectsViewsTests):
         self.assertEqual(resp.status_code, 200)
 
 
-class RObjectListView(ProjectsViewsTests):
+class RObjectListViewTests(ProjectsViewsTests):
     @classmethod
     def setUpClass(cls):
         ''' Extend super setUpClass '''
 
-        super(RObjectListView, cls).setUpClass()
+        super(RObjectListViewTests, cls).setUpClass()
 
         # create robjects (2 related to project, 1 unrelated)
-        cls.robject_1 = RObject.objects.create(project=cls.project, create_date=datetime.date(2010, 10, 20))
-        cls.robject_2 = RObject.objects.create(project=cls.project, create_date=datetime.date(2000, 01, 10))
+        cls.robject_1 = RObject.objects.create(
+            project=cls.project, create_date=datetime.date(2010, 10, 20))
+        cls.robject_2 = RObject.objects.create(
+            project=cls.project, create_date=datetime.date(2000, 01, 10))
         cls.robject_3 = RObject.objects.create()
 
         # create robjects names
@@ -71,9 +73,9 @@ class RObjectListView(ProjectsViewsTests):
         Name.objects.create(title="robject_3", primary=True,
                             robject=cls.robject_3)
 
-    def test_RObjectListView(self):
+    def test_get_table_data_method(self):
         # test get request (get_table_data method)
-        resp = self.c.get(reverse("projects:project_detail",
+        resp = self.c.get(reverse("projects:robject_list",
                                   kwargs={"project_name": "test_project"}))
 
         self.assertIn(self.robject_1, resp.context["table"].data)
@@ -82,12 +84,12 @@ class RObjectListView(ProjectsViewsTests):
         self.assertTemplateUsed(resp, 'projects/robject_list.html')
         self.assertEqual(resp.status_code, 200)
 
-        # test post request
-
+    def test_get_form_valid_method(self):
         # test if form_valid render proper template, create new form instace and calls get_table_data()
-        # test if get_table_data() calls SearchMixin.search() and SearchMixin.filter() methods
-        resp = self.c.post(reverse("projects:project_detail", 
-                           kwargs={"project_name": "test_project"}), 
+        # test if get_table_data() calls SearchMixin.search() and
+        # SearchMixin.filter() methods
+        resp = self.c.post(reverse("projects:robject_list",
+                                   kwargs={"project_name": "test_project"}),
                            data={"query": "robject", "after_date": "2010-01-01", "before_date": ""})
 
         self.assertIn(self.robject_1, resp.context["table"].data)
@@ -96,14 +98,27 @@ class RObjectListView(ProjectsViewsTests):
         self.assertTemplateUsed(resp, 'projects/robject_list.html')
         self.assertFalse(resp.context["form"].is_bound)
 
+    def test_post_method(self):
+        """
+            Test if post method redirect user when specific POST data is passed, 
+            and where this redirect leads. 
+        """
+        POST_data = {
+            "actions-form": False,
+            "csrfmiddlewaretoken": None, # include token imitation
+            "1": "checked",
+            "101": "checked"
+        }
+
+        resp = self.c.post(reverse("projects:robject_list", kwargs={
+                           "project_name": "test_project"}), data=POST_data)
+        self.assertRedirects(resp, reverse("projects:robject_delete", kwargs={
+                             "project_name": "test_project", "robject_ids": "1+101"}))
 
     # def test_RobjectDetailView(self):
     #     pass
 
     # def test_RobjectCreateView(self):
-    #     pass
-
-    # def test_RobjectUpdateView(self):
     #     pass
 
     # def test_RobjectDeleteView(self):
