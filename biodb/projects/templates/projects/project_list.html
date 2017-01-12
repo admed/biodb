@@ -7,7 +7,7 @@
     {% for project in projects %}
         <div class="project">
             <div class="name">
-                <a href="{% url 'projects:project_detail' project.name %}">{{ project.name }}</a>
+                <a href="{% url 'projects:robject_list' project.name %}">{{ project.name }}</a>
             </div>
             <div class="date">
                 {{ project.create_date }}
