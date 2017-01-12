@@ -121,6 +121,87 @@ class RObjectListViewTests(ProjectsViewsTests):
     # def test_RobjectCreateView(self):
     #     pass
 
+
+class RObjectDeleteViewTests(ProjectsViewsTests):
+    """
+        Test deletion robjects using RObjectDeleteView.
+    """
+
+    def setUp(self):
+        """
+            Run before any test.
+        """
+        # create robjects
+        self.robject1 = RObject.objects.create(author="Obi Wan Kenobi")
+        self.robject2 = RObject.objects.create(author="Luke Skywalker")
+
+    def test_delete_single_object(self):
+        # test get
+
+        # request existing object
+        resp = self.c.get(reverse("projects:robject_delete", kwargs={
+                          "project_name": "test_project", "robject_ids": str(self.robject1.id)}))
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'projects/robject_confirm_delete.html')
+
+        # request no existing object
+        resp = self.c.get(reverse("projects:robject_delete", kwargs={
+                          "project_name": "test_project", "robject_ids": "100"}))
+
+        self.assertEqual(resp.status_code, 404)
+
+        # test post
+
+        # delete robject1
+        resp = self.c.post(reverse("projects:robject_delete", kwargs={
+            "project_name": "test_project", "robject_ids": str(self.robject1.id)}))
+
+        self.assertRedirects(resp, reverse("projects:robject_list", kwargs={
+                             "project_name": "test_project"}))
+        with self.assertRaisesMessage(RObject.DoesNotExist, "RObject matching query does not exist."):
+            RObject.objects.get(author="Obi Wan Kenobi")
+
+    def test_delete_multiple_object(self):
+        # test get
+
+        robject_ids = "1+2"
+
+        # request existing objects
+        resp = self.c.get(reverse("projects:robject_delete", kwargs={
+                          "project_name": "test_project", "robject_ids": robject_ids}))
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'projects/robject_confirm_delete.html')
+        self.assertEqual(len(resp.context["object"]), 2)
+
+        # request one existing and one not existing objects
+        resp = self.c.get(reverse("projects:robject_delete", kwargs={
+                          "project_name": "test_project", "robject_ids": "1+100"}))
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, 'projects/robject_confirm_delete.html')
+        self.assertIn(self.robject1, resp.context["object"])
+
+        # request no existing objects
+        resp = self.c.get(reverse("projects:robject_delete", kwargs={
+                          "project_name": "test_project", "robject_ids": "100+200"}))
+
+        self.assertEqual(resp.status_code, 404)
+
+        # test post
+
+        # delete both robjects
+        resp = self.c.post(reverse("projects:robject_delete", kwargs={
+            "project_name": "test_project", "robject_ids": robject_ids}))
+
+        self.assertRedirects(resp, reverse("projects:robject_list", kwargs={
+                             "project_name": "test_project"}))
+        with self.assertRaisesMessage(RObject.DoesNotExist, "RObject matching query does not exist."):
+            RObject.objects.get(author="Obi Wan Kenobi")
+        with self.assertRaisesMessage(RObject.DoesNotExist, "RObject matching query does not exist."):
+            RObject.objects.get(author="Luke Skywalker")
+            
     # def test_RobjectDeleteView(self):
     #     pass
 
