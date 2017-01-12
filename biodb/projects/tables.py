@@ -28,11 +28,11 @@ class CustomCheckBoxColumn(tables.CheckBoxColumn):
         # get tag
         tag = soup.input
         # change name
-        tag["name"] = "robject_{}".format(record.id)
+        tag["name"] = "{}".format(record.id)
         return str(tag)
 
 class RObjectTable(tables.Table):
-    selection = CustomCheckBoxColumn(accessor='id', orderable=False, attrs={'td__input': {'class': 'select-robject', 'form': 'actions'}, 
+    selection = CustomCheckBoxColumn(accessor='id', orderable=False, attrs={'td__input': {'class': 'select-robject', 'form': 'actions-form', 'value':'check'}, 
                                                                              "th__input": {"class": "select-all"}})
     # display column with names of robjects
     name = tables.Column()
