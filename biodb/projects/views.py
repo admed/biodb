@@ -71,8 +71,6 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
         # display form instead of redirect
         context.update({'form': self.form_class()})
 
-        print context
-
         return render(self.request, self.template_name, context)
 
     def post(self, request, **kwargs):
@@ -81,13 +79,12 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
         # get POST dict
         POST = request.POST.copy()
 
-        # delete token
-        del POST["csrfmiddlewaretoken"]
-
         # pop 'actions-form' from request.POST (False if none)
         actions_form = POST.pop("actions-form", False)
 
         if actions_form and POST:  # check if POST not empty!
+            # delete token
+            del POST["csrfmiddlewaretoken"]
             # collect robject id's
             ids = POST.keys()
             # create url
