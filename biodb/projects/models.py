@@ -44,7 +44,7 @@ class BioObj(models.Model):
 
 class RObject(models.Model):
     project = models.ForeignKey(Project, null=True)
-    create_date = models.DateField(null=True)
+    create_date = models.DateField(null=True, blank=True)
     history = HistoricalRecords()
     author = models.CharField(max_length=100, null=True, blank=True)
     creator = models.ForeignKey(User, null=True)
@@ -77,7 +77,7 @@ class RObject(models.Model):
             
 
 class Name(models.Model):
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, null=True)
     primary = models.BooleanField(blank=True)
     robject = models.ForeignKey(RObject, null=True)
 
