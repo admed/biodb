@@ -67,15 +67,18 @@ class RObject(models.Model):
 
         return name
 
-    @property
-    def project_name(self): # method treated like attribute (cool!)
+    @property               # method treated like attribute (cool!)
+    def project_name(self): 
+        """
+        Return a project name related to RObject or None
+        """
         try:
             # get related Name model with primary=True
             project = self.project
         except:
             # create temporary, working title 
             return None
-        if project:
+        if project and project.name:
             return project.name
         else:
             return None

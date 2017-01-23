@@ -8,7 +8,8 @@ from guardian.mixins import PermissionRequiredMixin, PermissionListMixin, LoginR
 from biodb import mixins
 from tables import RObjectTable
 from django_tables2 import SingleTableMixin
-from forms import SearchFilterForm
+from forms import SearchFilterForm, RObjectCreateForm
+
 # from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 # from django.shortcuts import get_object_or_404, get_list_or_404
@@ -151,12 +152,31 @@ class RObjectDetailView(generic.DetailView):
     """
     model = RObject
 
+class RObjectUpdate(LoginRequiredMixin, generic.UpdateView):
+    model = RObject
+    form_class = RObjectCreateForm
+    template_name_suffix = "_update_form"
+    context_object_name = "object"
 
-    # def get_context_data(self, **kwargs):
-    #     context = super(RObjectDetailView, self).get_context_data(**kwargs)
-    #     context["files"] = self.object.attachments_set.all()
-    #     context["images"] = self.object.images_set.all()
-    #     context["mycotests"] = self.object.mycoplasmatest_set.all()
-    #     # from django.core import serializers
-    #     # context['data'] = serializers.serialize("python", [self.object, ])
-    #     return context
+    def post(self, request, pk):
+        # fetch updated object
+        robject = self.get_object()
+
+        # create files list from request data
+        files = request.FILES.getlist('files')
+
+        # save every file in db, update db relations
+        for f in files:
+            robject.files_set.create(file=f, rboject=robject)
+
+        return super(RObjectUpdate, self).post(self, request)
+
+    def form_valid(self, form):
+        form.instance.changed_by = self.request.user
+        return super(RObjectUpdate, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        # add files to context
+        context = super(RObjectUpdate, self).get_context_data(**kwargs)
+        # context['files'] = self.object.files_set.all()
+        return context
