@@ -153,6 +153,10 @@ class RObjectDetailView(generic.DetailView):
     model = RObject
 
 class RObjectUpdate(LoginRequiredMixin, generic.UpdateView):
+    """
+    View for updating Robject model data.
+    """
+    
     model = RObject
     form_class = RObjectCreateForm
     template_name_suffix = "_update_form"
