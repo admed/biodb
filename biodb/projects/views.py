@@ -9,11 +9,11 @@ from biodb import mixins
 from tables import RObjectTable
 from django_tables2 import SingleTableMixin
 from forms import SearchFilterForm
-from django.http import HttpResponse
+# from django.http import HttpResponse
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404, get_list_or_404
-from django.http import Http404
-from patches.shortcuts import get_objects_or_404
+# from django.shortcuts import get_object_or_404, get_list_or_404
+# from django.http import Http404
+# from patches.shortcuts import get_objects_or_404
 
 
 # Create your views here.
@@ -103,6 +103,7 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
             "project_name": self.kwargs["project_name"]
         })
 
+
 class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleMixin, generic.DeleteView):
     ''' View capable to delete more than one Robject! '''
 
@@ -111,6 +112,7 @@ class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
 
     def get_success_url(self):
         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
+
 
 class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
     permission_required = 'projects.change_project'
