@@ -1,4 +1,5 @@
 import django_tables2 as tables
+from django_tables2.utils import A
 from models import RObject
 from bs4 import BeautifulSoup
 
@@ -34,8 +35,8 @@ class CustomCheckBoxColumn(tables.CheckBoxColumn):
 class RObjectTable(tables.Table):
     selection = CustomCheckBoxColumn(accessor='id', orderable=False, attrs={'td__input': {'class': 'select-robject', 'form': 'actions-form', 'value':'check'}, 
                                                                              "th__input": {"class": "select-all"}})
-    # display column with names of robjects
-    name = tables.Column()
+    # display column with names of robjects (link to details)
+    name = tables.LinkColumn('projects:robject_detail', args=[A('project_name'), A('pk')])
     class Meta:
         model = RObject
         attrs = {"class":"table table-hover"}

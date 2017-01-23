@@ -67,12 +67,28 @@ class RObject(models.Model):
 
         return name
 
+    @property
+    def project_name(self): # method treated like attribute (cool!)
+        try:
+            # get related Name model with primary=True
+            project = self.project
+        except:
+            # create temporary, working title 
+            return None
+        if project:
+            return project.name
+        else:
+            return None
+
     @staticmethod
     def get_search_fields():
         ''' Return list with fields names included in watson search (except relations) '''
         
         # exceptions handles during watson.register below
         return ["pk", "name", "author"]
+
+    def get_fields(self):
+        return [(field.verbose_name, self._get_FIELD_display(field)) for field in self.__class__._meta.fields]
 
             
 

@@ -132,7 +132,9 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
 
 
 class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleMixin, generic.DeleteView):
-    ''' View capable to delete more than one Robject! '''
+    """
+    Delete one or more RObjects
+    """
 
     permission_required = 'projects.can_visit_project'
     model = RObject
@@ -142,14 +144,19 @@ class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
 
 
 
-class DetailView(generic.DetailView):
-    model = CLine
+class RObjectDetailView(generic.DetailView):
+    """
+    Show detail view of Robject instance 
+    (all fields from model + Relations to other models)
+    """
+    model = RObject
 
-    def get_context_data(self, **kwargs):
-        context = super(DetailView, self).get_context_data(**kwargs)
-        context["files"] = self.object.attachments_set.all()
-        context["images"] = self.object.images_set.all()
-        context["mycotests"] = self.object.mycoplasmatest_set.all()
-        # from django.core import serializers
-        # context['data'] = serializers.serialize("python", [self.object, ])
-        return context
+
+    # def get_context_data(self, **kwargs):
+    #     context = super(RObjectDetailView, self).get_context_data(**kwargs)
+    #     context["files"] = self.object.attachments_set.all()
+    #     context["images"] = self.object.images_set.all()
+    #     context["mycotests"] = self.object.mycoplasmatest_set.all()
+    #     # from django.core import serializers
+    #     # context['data'] = serializers.serialize("python", [self.object, ])
+    #     return context
