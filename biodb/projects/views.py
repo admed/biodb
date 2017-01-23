@@ -16,21 +16,45 @@ from django.core.urlresolvers import reverse
 # from patches.shortcuts import get_objects_or_404
 
 
-# Create your views here.
 def redirect_to_home(request):
-    ''' In case of request '/' redirect to '/projects/' '''
+    """
+    Set a list of projects (url: /projects) as a main url to redirect.
+    """
     return redirect(to=settings.HOME_URL)
 
 
+# Project Views
+
 class ProjectListView(LoginRequiredMixin, PermissionListMixin, generic.ListView):
+    """
+    Show a user list of projects which has a permission to visit
+    """
     permission_required = 'projects.can_visit_project'
     template_name = 'projects/project_list.html'
     raise_exception = True
     model = Project
     context_object_name = "projects"
 
+class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
+    """
+    View for edit project data.
+    Required permission for changing.
+    """
+    permission_required = 'projects.change_project'
+    raise_exception = True
+    model = Project
+    fields = ["name", "description"]
+
+# Robject views
 
 class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, SingleTableMixin, generic.FormView, mixins.SearchMixin):
+    """
+    View of table of ROjects asigned for the project.
+    Required user permision to visit project.
+     - Searching options
+     - Actions
+     - Download Manager
+    """
     permission_required = 'projects.can_visit_project'
     template_name = 'projects/robject_list.html'
     model = RObject
@@ -40,8 +64,11 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
     success_url = "."
 
     def get_table_data(self):
-        ''' Limit objects in table using: a) project related permission, b) searching query,
-            c) date filtering '''
+        """
+        Limit objects in table as result to: 
+            a) project related permission, 
+            b) searching query 
+        """
 
         # include permissions
 
@@ -114,8 +141,15 @@ class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
 
 
-class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
-    permission_required = 'projects.change_project'
-    raise_exception = True
-    model = Project
-    fields = ["name", "description"]
+
+class DetailView(generic.DetailView):
+    model = CLine
+
+    def get_context_data(self, **kwargs):
+        context = super(DetailView, self).get_context_data(**kwargs)
+        context["files"] = self.object.attachments_set.all()
+        context["images"] = self.object.images_set.all()
+        context["mycotests"] = self.object.mycoplasmatest_set.all()
+        # from django.core import serializers
+        # context['data'] = serializers.serialize("python", [self.object, ])
+        return context
