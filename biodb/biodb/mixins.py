@@ -2,10 +2,10 @@ from django.shortcuts import get_object_or_404
 from patches.shortcuts import get_objects_or_404
 from projects.models import Project
 from watson import search as watson
-from django.views.generic.edit import DeletionMixin
-from django.core.exceptions import ImproperlyConfigured
-from django.http import HttpResponseRedirect
-from django.views.generic import DeleteView 
+# from django.views.generic.edit import DeletionMixin
+# from django.core.exceptions import ImproperlyConfigured
+# from django.http import HttpResponseRedirect
+# from django.views.generic import DeleteView 
 
 class ProjectPermissionMixin():
     ''' Mixin prepared for check user permission to any view contains data related to given project '''
