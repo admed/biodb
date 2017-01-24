@@ -159,7 +159,7 @@ class RObjectUpdate(LoginRequiredMixin, generic.UpdateView):
     
     model = RObject
     form_class = RObjectCreateForm
-    template_name_suffix = "_update_form"
+    # template_name_suffix = "_update_form"
     context_object_name = "object"
 
     def post(self, request, pk):
