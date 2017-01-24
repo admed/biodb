@@ -159,10 +159,10 @@ class RObjectUpdate(LoginRequiredMixin, generic.UpdateView):
     
     model = RObject
     form_class = RObjectCreateForm
-    # template_name_suffix = "_update_form"
+    template_name_suffix = "_update"
     context_object_name = "object"
 
-    def post(self, request, pk):
+    def post(self, request, project_name, pk):
         # fetch updated object
         robject = self.get_object()
 
@@ -182,5 +182,6 @@ class RObjectUpdate(LoginRequiredMixin, generic.UpdateView):
     def get_context_data(self, **kwargs):
         # add files to context
         context = super(RObjectUpdate, self).get_context_data(**kwargs)
+        context['project_name'] = self.kwargs["project_name"]
         # context['files'] = self.object.files_set.all()
         return context

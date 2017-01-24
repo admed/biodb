@@ -20,7 +20,7 @@ class RObjectCreateForm(forms.ModelForm):
     class Meta:
         model = RObject
         fields = '__all__'
-        exclude = ['created_by', 'changed_by', 'url']
+        exclude = ['created_by', 'project', 'bio_obj', 'changed_by']
         # fields = ('name', 'organism', 'tissue', 'cell_type', 'product_format', 'culture_properties', 'biosafety_level', 'disease', 'age', 'gender',
         #           'ethnicity', 'storage_conditions', 'derivation', 'clinical_data', 'comments', 'subculturing',
         #           'cryopreservation', 'culture_conditions', 'rack', 'box', 'entry', 'complete_growth_medium')

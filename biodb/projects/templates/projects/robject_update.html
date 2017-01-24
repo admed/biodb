@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+{% load bootstrap3 %}
+
+{% block content %}
+
+    <p><span>Created at: {{ object.create_date }}</span><br /><span>Last modified: {{ object.modify_date }}</span></p>
+
+    <form action="{% url 'projects:robject_edit' project_name object.pk %}" method="post" class="form" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+
+
+        {% buttons %}
+            <button type="submit" class="btn btn-primary">
+                {% bootstrap_icon "ok" %} Update
+            </button>
+        {% endbuttons %}
+    </form>
+    
+    <br /><br /><br /><br />
+{% endblock %}

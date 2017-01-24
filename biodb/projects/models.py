@@ -23,16 +23,18 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
-
 class Tag(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
 
 class MoleculeFile(models.Model):
     file = models.FileField()
     description = RichTextField()
 
 class BioObj(models.Model):
-    name = models.CharField(max_length=100)
+    # name = models.CharField(max_length=100)
     ligand = models.CharField(max_length=100)
     receptor = models.CharField(max_length=100)
     ref_seq = RichTextField()
@@ -41,20 +43,42 @@ class BioObj(models.Model):
     bibliography = RichTextField()
     ref_commercial = RichTextField()
     ref_clinical = RichTextField()
+    history = HistoricalRecords()
+
 
 class RObject(models.Model):
     project = models.ForeignKey(Project, null=True)
     create_date = models.DateField(null=True)
-    history = HistoricalRecords()
+    modify_date = models.DateTimeField(
+        'date modified', null=True, auto_now=True)
+    changed_by = models.ForeignKey(
+        'auth.User', null=True, related_name='changed_by')
     author = models.CharField(max_length=100, null=True, blank=True)
     creator = models.ForeignKey(User, null=True)
+    history = HistoricalRecords()
     bio_obj = models.ForeignKey(BioObj, null=True, blank=True)
     notes = RichTextField(null=True, blank=True) 
-    tags = models.ForeignKey(Tag, null=True, blank=True)
+    tags = models.ManyToManyField(Tag, null=True, blank=True)
     files = models.ForeignKey(MoleculeFile, null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+    @property
+    def _history_date(self):
+        return self.__history_date
+
+    @_history_date.setter
+    def _history_date(self, value):
+        self.__history_date = value
+
+    @property
+    def _history_user(self):
+        return self.changed_by
+
+    @_history_user.setter
+    def _history_user(self, value):
+        self.changed_by = value
 
     @property
     def name(self): # method treated like attribute (cool!)
@@ -93,6 +117,8 @@ class RObject(models.Model):
     def get_fields(self):
         return [(field.verbose_name, self._get_FIELD_display(field)) for field in self.__class__._meta.fields]
 
+    def get_absolute_url(self):
+        return "/projects/%s" % self.project_name
             
 
 class Name(models.Model):

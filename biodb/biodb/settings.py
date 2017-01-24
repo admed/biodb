@@ -46,7 +46,10 @@ INSTALLED_APPS = (
     'projects',
     'biodb', 
     'django_tables2',
-    'watson'
+    'watson',
+    'bootstrap3',
+    'simple_history',
+
 )
 
 MIDDLEWARE_CLASSES = (
@@ -58,7 +61,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'watson.middleware.SearchContextMiddleware'
+    'watson.middleware.SearchContextMiddleware', 
+    'simple_history.middleware.HistoryRequestMiddleware',
 )
 
 ROOT_URLCONF = 'biodb.urls'
