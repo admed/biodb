@@ -12,6 +12,9 @@ class SearchFilterForm(forms.Form):
         attrs={'placeholder': 'date before', "class": "form-control date-input"}))
 
 class RObjectCreateForm(forms.ModelForm):
+    """
+    Forms for creating Robject Instance
+    """
     required_css_class = 'required'
     notes = forms.CharField(
         widget=CKEditorWidget(), required=False)

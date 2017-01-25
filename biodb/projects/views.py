@@ -176,12 +176,13 @@ class RObjectUpdate(LoginRequiredMixin, generic.UpdateView):
         return super(RObjectUpdate, self).post(self, request)
 
     def form_valid(self, form):
+        # add the info about user who change the object
         form.instance.changed_by = self.request.user
         return super(RObjectUpdate, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
-        # add files to context
         context = super(RObjectUpdate, self).get_context_data(**kwargs)
+        # add project_name to context
         context['project_name'] = self.kwargs["project_name"]
         # context['files'] = self.object.files_set.all()
         return context
