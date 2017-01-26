@@ -138,7 +138,7 @@ class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
         )
         return RObjectFormGroup
 
-    def form_valid(self, form):
+    def form_valid(self, form): # TODO: figure how to delete Name forms from formset 
         # create robject from form, but not save it!
         robject = form.robject.save(commit=False)
 
