@@ -128,7 +128,8 @@ class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
         RObjectForm = modelform_factory(RObject, exclude=("project","creator",))
         # create Name formset
         NameFormSet = modelformset_factory(
-            Name, exclude=("robject",), formset=BaseNameFormSet, extra=1)
+            Name, exclude=("robject",), formset=BaseNameFormSet, 
+            extra=int(self.kwargs["number_of_name_forms"]))
         # join above forms into one form using rebar's formgroup_factory
         RObjectFormGroup = formgroup_factory(
             (
@@ -158,6 +159,14 @@ class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
             name.save()
 
         return redirect(self.get_success_url())
+
+    def get_context_data(self, **kwargs):
+        context = super(RObjectCreateView, self).get_context_data(**kwargs)
+
+        # access kwargs in template
+        context.update(self.kwargs)
+
+        return context
 
     def get_success_url(self):
         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
