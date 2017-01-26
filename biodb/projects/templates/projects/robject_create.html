@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
+    <a href="{% url 'projects:robject_create' project_name number_of_name_forms|add:1 %}">add</a>
+    {% if number_of_name_forms|add:-1 > 0 %}
+        <a href="{% url 'projects:robject_create' project_name number_of_name_forms|add:-1 %}">remove</a>
+    {% endif %}
     <form method="post" action="">
         {% csrf_token %}
         {% for form in form.forms %}
