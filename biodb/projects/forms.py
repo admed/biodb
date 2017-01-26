@@ -13,7 +13,7 @@ class SearchFilterForm(forms.Form):
 
 class RObjectCreateForm(forms.ModelForm):
     """
-    Forms for creating Robject Instance
+    Forms for creating/updating Robject Instance
     """
     required_css_class = 'required'
     notes = forms.CharField(
@@ -23,7 +23,7 @@ class RObjectCreateForm(forms.ModelForm):
     class Meta:
         model = RObject
         fields = '__all__'
-        exclude = ['created_by', 'project', 'bio_obj', 'changed_by']
+        exclude = ['created_by', 'project', 'bio_obj', 'changed_by', 'create_date']
         # fields = ('name', 'organism', 'tissue', 'cell_type', 'product_format', 'culture_properties', 'biosafety_level', 'disease', 'age', 'gender',
         #           'ethnicity', 'storage_conditions', 'derivation', 'clinical_data', 'comments', 'subculturing',
         #           'cryopreservation', 'culture_conditions', 'rack', 'box', 'entry', 'complete_growth_medium')
