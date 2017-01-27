@@ -1,5 +1,13 @@
 {% extends "base.html" %}
+{% load static %}
+{% block extra_head %}
+    <script src="{% static 'projects/js/robject_create/add_remove_buttons.js' %}"></script>
+{% endblock extra_head %}
 {% block content %}
+    <input id="add_input" type="checkbox" name="add_name" value="">
+    <input id="remove_input" type="checkbox" name="remove_name" value="">
+    <button id="add_button">Add</button>
+    <button id="remove_button">Remove</button>
     <form method="post" action="">
         {% csrf_token %}
         {% for form in form.forms %}
