@@ -23,10 +23,16 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
+    def __unicode__(self):
+        return self.name
+
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
+        return self.name
+
+    def __unicode__(self):
         return self.name
 
 class MoleculeFile(models.Model):
@@ -62,6 +68,9 @@ class RObject(models.Model):
     files = models.ForeignKey(MoleculeFile, null=True, blank=True)
 
     def __str__(self):
+        return self.name
+
+    def __unicode__(self):
         return self.name
 
     @property
@@ -127,6 +136,9 @@ class Name(models.Model):
     robject = models.ForeignKey(RObject, null=True)
 
     def __str__(self):
+        return self.title
+
+    def __unicode__(self):
         return self.title
 
 watson.register(RObject, fields=["creator__username", "bio_obj__name"]+RObject.get_search_fields())
