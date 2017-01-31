@@ -4,6 +4,10 @@ from django.contrib.auth.models import User, Permission
 from projects.models import Project, RObject, Name
 from django.core.urlresolvers import reverse
 from guardian.shortcuts import assign_perm
+from projects import views
+from django.forms.models import ModelForm
+from django.forms.formsets import BaseFormSet
+from projects.forms import BaseNameFormSet
 import datetime
 
 
@@ -34,11 +38,13 @@ class ProjectsViewsTests(TestCase):
         cls.project = Project.objects.create(name="test_project")
 
         # add permissions
-        permission = Permission.objects.get(codename='can_visit_project')
-        cls.user.user_permissions.add(permission)
+        permission1 = Permission.objects.get(codename='can_visit_project')
+        permission2 = Permission.objects.get(codename='can_modify_project_content')
+        cls.user.user_permissions.add(permission1, permission2)
 
         # assign permission to project instance
         assign_perm("can_visit_project", cls.user, cls.project)
+        assign_perm('can_modify_project_content', cls.user, cls.project)
 
 
 class ProjectListViewTests(ProjectsViewsTests):
@@ -114,6 +120,48 @@ class RObjectListViewTests(ProjectsViewsTests):
                            "project_name": "test_project"}), data=POST_data)
         self.assertRedirects(resp, reverse("projects:robject_delete", kwargs={
                              "project_name": "test_project", "robject_ids": "1+101"}))
+
+class RObjectCreateViewTests(ProjectsViewsTests):
+    @classmethod
+    def setUpClass(cls):
+        super(RObjectCreateViewTests, cls).setUpClass()
+
+        cls.view = views.RObjectCreateView(kwargs = {"number_of_name_forms":1})
+
+    def test_get_form_class_method(self): # test without client
+        # create form_class using method
+        form_class = self.view.get_form_class()
+
+        # check if it's FormGroup class
+        self.assertEqual(form_class.__name__, "FormGroup")
+
+        # check if contains two forms
+        form_subclasses = form_class.form_classes  
+        self.assertEqual(len(form_subclasses), 2)
+
+        # unpack FormGroup and test single forms
+        form_set = form_subclasses[0][0]
+        model_form = form_subclasses[1][0]
+        self.assertTrue(issubclass(form_set, BaseNameFormSet))  
+        self.assertTrue(issubclass(model_form, ModelForm))
+
+        # test formset:
+
+        # test model
+        self.assertEqual(form_set.model, Name)
+        # test number of forms in formset
+        self.assertEqual(form_set.extra, self.view.kwargs["number_of_name_forms"]) 
+        # test fields exclude
+        self.assertEqual(("robject",), form_set.form.Meta.exclude) 
+
+        # test model_form:
+
+        # test model
+        self.assertEqual(model_form.Meta.model, RObject)
+        # test fields exclude
+        self.assertEqual(("project","creator",), model_form.Meta.exclude) 
+
+        # test  
 
     # def test_RobjectDetailView(self):
     #     pass
