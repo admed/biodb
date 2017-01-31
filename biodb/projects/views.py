@@ -106,6 +106,13 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
             "project_name": self.kwargs["project_name"]
         })
 
+    def get_context_data(self, **kwargs):
+        context = super(RObjectListView, self).get_context_data(**kwargs)
+        context.update({
+                "kwargs":self.kwargs
+            })
+        return context
+
 
 class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleMixin, generic.DeleteView):
     ''' View capable to delete more than one Robject! '''
