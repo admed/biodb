@@ -117,7 +117,7 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
 class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleMixin, generic.DeleteView):
     ''' View capable to delete more than one Robject! '''
 
-    permission_required = ['projects.can_visit_project', 'projects.can_modify_content']
+    permission_required = ['projects.can_visit_project', 'projects.can_modify_project_content']
     model = RObject
     raise_exception = True
 
@@ -126,12 +126,15 @@ class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
 
 
 class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.FormView):
-    permission_required = ['projects.can_visit_project', 'projects.can_modify_content']
+    permission_required = ['projects.can_visit_project', 'projects.can_modify_project_content']
     raise_exception = True
     model = RObject
     template_name = "projects/robject_create.html"
 
     def get_form_class(self):
+        """
+            Create form class by combining model form and formset. 
+        """
         # create RObject model form
         RObjectForm = modelform_factory(RObject, exclude=("project","creator",))
         # create Name formset
@@ -147,7 +150,10 @@ class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
         )
         return RObjectFormGroup
 
-    def form_valid(self, form): # TODO: figure how to delete Name forms from formset 
+    def form_valid(self, form): 
+        """
+            Get objects from forms, manually add fields and save. 
+        """
         # create robject from form, but not save it!
         robject = form.robject.save(commit=False)
 
@@ -169,6 +175,9 @@ class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
         return redirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
+        """
+            Update context with url kwargs.
+        """
         context = super(RObjectCreateView, self).get_context_data(**kwargs)
 
         # access kwargs in template
