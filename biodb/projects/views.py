@@ -110,15 +110,16 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
 class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleMixin, generic.DeleteView):
     ''' View capable to delete more than one Robject! '''
 
-    permission_required = 'projects.can_visit_project'
+    permission_required = ['projects.can_visit_project', 'projects.can_modify_content']
     model = RObject
+    raise_exception = True
 
     def get_success_url(self):
         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
 
 
 class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.FormView):
-    permission_required = 'projects.change_project'
+    permission_required = ['projects.can_visit_project', 'projects.can_modify_content']
     raise_exception = True
     model = RObject
     template_name = "projects/robject_create.html"
