@@ -18,6 +18,7 @@ class Project(models.Model):
     class Meta():
         permissions = (
             ('can_visit_project', 'Can visit project details'),
+            ('can_modify_content', 'Can modify project elements')
         )
 
     def __str__(self):
