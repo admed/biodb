@@ -3,6 +3,7 @@ from ckeditor.fields import RichTextField
 from simple_history.models import HistoricalRecords
 from django.contrib.auth.models import User
 from watson import search as watson
+from django.forms.models import model_to_dict
 
 
 # Create your models here.
@@ -101,22 +102,6 @@ class RObject(models.Model):
 
         return name
 
-    @property               # method treated like attribute (cool!)
-    def project_name(self): 
-        """
-        Return a project name related to RObject or None
-        """
-        try:
-            # get related Name model with primary=True
-            project = self.project
-        except:
-            # create temporary, working title 
-            return None
-        if project and project.name:
-            return project.name
-        else:
-            return None
-
     @staticmethod
     def get_search_fields():
         ''' Return list with fields names included in watson search (except relations) '''
@@ -124,8 +109,10 @@ class RObject(models.Model):
         # exceptions handles during watson.register below
         return ["pk", "name", "author"]
 
-    def get_fields(self):
-        return [(field.verbose_name, self._get_FIELD_display(field)) for field in self.__class__._meta.fields]
+    def get_fields(self, fields=None, exclude=["id", "create_by", 
+            "modify_date", "create_date"]): # exclude fields unused in template iteration
+        return model_to_dict(self, fields=fields, exclude=exclude)
+
 
     def get_absolute_url(self):
         return "/projects/%s" % self.project_name
