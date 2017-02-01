@@ -33,6 +33,9 @@ class ProjectsModelsTests(TestCase):
         self.assertEqual(self.robject_noname.name, default_name)
         self.assertEqual(self.robject_name.name, "C3P0")
 
-
+    def test_RObject_get_absolute_path(self):
+        self.assertEqual(self.project.get_absolute_path(), "/projects/testing_project") 
+        
     def test_Name__str__method(self):
         self.assertEqual(str(self.name), "C3P0")
+
