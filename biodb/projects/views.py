@@ -155,11 +155,16 @@ class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
 
 
 
-class RObjectDetailView(generic.DetailView):
+class RObjectDetailView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.DetailView):
     """
-    Show detail view of Robject instance 
-    (all fields from model + Relations to other models)
+        Show detail view of Robject instance 
+        (all fields from model + Relations to other models)
     """
+    permission_required = ['projects.can_visit_project']
+    model = RObject
+    raise_exception = True
+
+
 class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.FormView):
     permission_required = ['projects.can_visit_project', 'projects.can_modify_project_content']
     raise_exception = True
