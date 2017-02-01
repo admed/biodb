@@ -36,7 +36,7 @@ class RObjectTable(tables.Table):
     selection = CustomCheckBoxColumn(accessor='id', orderable=False, attrs={'td__input': {'class': 'select-robject', 'form': 'actions-form', 'value':'check'}, 
                                                                              "th__input": {"class": "select-all"}})
     # display column with names of robjects (link to details)
-    name = tables.LinkColumn('projects:robject_detail', args=[A('project_name'), A('pk')])
+    name = tables.LinkColumn('projects:robject_detail', args=[A('project.name'), A('pk')])
     class Meta:
         model = RObject
         attrs = {"class":"table table-hover"}
