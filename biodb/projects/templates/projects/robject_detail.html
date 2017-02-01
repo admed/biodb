@@ -5,15 +5,12 @@
     <p><span>Created at: {{ object.create_date }}</span><br /><span>Last modified: {{ object.modify_date }}</span></p>
     <table class="detailview">
       <tbody>
-
-      {% for name, value in object.get_fields %}
-        {% if 'ID' != name and ' by' not in name and 'date' not in name %}
+      
+      {% for name, value in object.get_fields.items %}
           <tr>
             <th>{{ name |capfirst }}:</th>
             <td>{{ value|default:"---"|safe|urlize }}</td>
           </tr>
-
-        {% endif %}
         
       {% endfor %}
 
