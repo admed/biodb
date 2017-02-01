@@ -161,7 +161,8 @@ class RObjectCreateViewTests(ProjectsViewsTests):
         # test fields exclude
         self.assertEqual(("project","creator",), model_form.Meta.exclude) 
 
-        # test  
+    # TODO: finish testing this view after modernization!
+
 
     # def test_RobjectDetailView(self):
     #     pass
