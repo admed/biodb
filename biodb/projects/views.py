@@ -2,21 +2,23 @@ from biodb import settings
 from django.shortcuts import render, redirect
 # from django.http import HttpResponse
 from django.views import generic
-from models import Project, RObject
+from models import Project, RObject, Name
 # from guardian.shortcuts import get_objects_for_user
 from guardian.mixins import PermissionRequiredMixin, PermissionListMixin, LoginRequiredMixin
 from biodb import mixins
 from tables import RObjectTable
 from django_tables2 import SingleTableMixin
-from forms import SearchFilterForm, RObjectCreateForm
-
-# from django.http import HttpResponse
+from forms import SearchFilterForm, BaseNameFormSet
+from django.http import HttpResponse
 from django.core.urlresolvers import reverse
-# from django.shortcuts import get_object_or_404, get_list_or_404
-# from django.http import Http404
-# from patches.shortcuts import get_objects_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
+from django.http import Http404
+from patches.shortcuts import get_objects_or_404
+from django.forms import modelform_factory, modelformset_factory
+from rebar.group import formgroup_factory
 
 
+# Create your views here.
 def redirect_to_home(request):
     """
     Set a list of projects (url: /projects) as a main url to redirect.
@@ -131,14 +133,22 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
             "project_name": self.kwargs["project_name"]
         })
 
+    def get_context_data(self, **kwargs):
+        context = super(RObjectListView, self).get_context_data(**kwargs)
+        context.update({
+                "kwargs":self.kwargs
+            })
+        return context
+
 
 class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleMixin, generic.DeleteView):
     """
     Delete one or more RObjects
     """
 
-    permission_required = 'projects.can_visit_project'
+    permission_required = ['projects.can_visit_project', 'projects.can_modify_project_content']
     model = RObject
+    raise_exception = True
 
     def get_success_url(self):
         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
@@ -150,39 +160,65 @@ class RObjectDetailView(generic.DetailView):
     Show detail view of Robject instance 
     (all fields from model + Relations to other models)
     """
+class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.FormView):
+    permission_required = ['projects.can_visit_project', 'projects.can_modify_project_content']
+    raise_exception = True
     model = RObject
+    template_name = "projects/robject_create.html"
 
-class RObjectUpdate(LoginRequiredMixin, generic.UpdateView):
-    """
-    View for updating Robject model data.
-    """
-    
-    model = RObject
-    form_class = RObjectCreateForm
-    template_name_suffix = "_update"
-    context_object_name = "object"
+    def get_form_class(self):
+        """
+            Create form class by combining model form and formset. 
+        """
+        # create RObject model form
+        RObjectForm = modelform_factory(RObject, exclude=("project","creator",))
+        # create Name formset
+        NameFormSet = modelformset_factory(
+            Name, exclude=("robject",), formset=BaseNameFormSet, 
+            extra=int(self.kwargs["number_of_name_forms"]))
+        # join above forms into one form using rebar's formgroup_factory
+        RObjectFormGroup = formgroup_factory(
+            (
+                (NameFormSet, "name"),
+                (RObjectForm, "robject"),
+            ),
+        )
+        return RObjectFormGroup
 
-    def post(self, request, project_name, pk):
-        # fetch updated object
-        robject = self.get_object()
+    def form_valid(self, form): 
+        """
+            Get objects from forms, manually add fields and save. 
+        """
+        # create robject from form, but not save it!
+        robject = form.robject.save(commit=False)
 
-        # create files list from request data
-        files = request.FILES.getlist('files')
+        # bound robject with project and User
+        robject.project = self.get_permission_object()
+        robject.creator = self.request.user
+        
+        # now save it
+        robject.save()
 
-        # save every file in db, update db relations
-        for f in files:
-            robject.files_set.create(file=f, rboject=robject)
+        # the same story with names 
+        names = form.name.save(commit=False)
 
-        return super(RObjectUpdate, self).post(self, request)
+        # iterate over names, bound to robject and save
+        for name in names:
+            name.robject = robject
+            name.save()
 
-    def form_valid(self, form):
-        # add the info about user who change the object
-        form.instance.changed_by = self.request.user
-        return super(RObjectUpdate, self).form_valid(form)
+        return redirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
-        context = super(RObjectUpdate, self).get_context_data(**kwargs)
-        # add project_name to context
-        context['project_name'] = self.kwargs["project_name"]
-        # context['files'] = self.object.files_set.all()
+        """
+            Update context with url kwargs.
+        """
+        context = super(RObjectCreateView, self).get_context_data(**kwargs)
+
+        # access kwargs in template
+        context.update(self.kwargs)
+
         return context
+
+    def get_success_url(self):
+        return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})

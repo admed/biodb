@@ -18,6 +18,7 @@ class Project(models.Model):
     class Meta():
         permissions = (
             ('can_visit_project', 'Can visit project details'),
+            ('can_modify_project_content', 'Can modify project elements')
         )
 
     def __str__(self):
@@ -60,11 +61,11 @@ class RObject(models.Model):
     changed_by = models.ForeignKey(
         'auth.User', null=True, related_name='changed_by')
     author = models.CharField(max_length=100, null=True, blank=True)
-    creator = models.ForeignKey(User, null=True)
+    create_by = models.ForeignKey(User, null=True)
     history = HistoricalRecords()
     bio_obj = models.ForeignKey(BioObj, null=True, blank=True)
     notes = RichTextField(null=True, blank=True) 
-    tags = models.ManyToManyField(Tag, blank=True)
+    tags = models.ManyToManyField(Tag, blank=True, null=True)
     files = models.ForeignKey(MoleculeFile, null=True, blank=True)
 
     def __str__(self):
@@ -131,7 +132,7 @@ class RObject(models.Model):
             
 
 class Name(models.Model):
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, null=True)
     primary = models.BooleanField(blank=True)
     robject = models.ForeignKey(RObject, null=True)
 
