@@ -3,6 +3,7 @@ from django_tables2.utils import A
 from models import RObject
 from bs4 import BeautifulSoup
 
+
 class CustomCheckBoxColumn(tables.CheckBoxColumn):
     ''' Custom class that inherits from tables.CheckBoxColumn and customize render method. '''
 
@@ -11,19 +12,20 @@ class CustomCheckBoxColumn(tables.CheckBoxColumn):
         (ugly way but attrs kwarg in CheckBoxColumn not working in this case) '''
 
         from django.utils.safestring import mark_safe
-        
+
         # get input html string
-        input_html = super(CustomCheckBoxColumn, self).render(value, bound_column, record)
-        
+        input_html = super(CustomCheckBoxColumn, self).render(
+            value, bound_column, record)
+
         # modify input name
-        input_html = self.modify_input_name(input_html, record) 
+        input_html = self.modify_input_name(input_html, record)
 
         return mark_safe(input_html)
 
     @staticmethod
     def modify_input_name(input_html, record):
-        ''' Change name attr in input using beautiful soup and table record (row) data '''  
-        
+        ''' Change name attr in input using beautiful soup and table record (row) data '''
+
         # get soup
         soup = BeautifulSoup(input_html, 'html.parser')
         # get tag
@@ -32,14 +34,21 @@ class CustomCheckBoxColumn(tables.CheckBoxColumn):
         tag["name"] = "{}".format(record.id)
         return str(tag)
 
+
 class RObjectTable(tables.Table):
-    selection = CustomCheckBoxColumn(accessor='id', orderable=False, attrs={'td__input': {'class': 'select-robject', 'form': 'actions-form', 'value':'check'}, 
-                                                                             "th__input": {"class": "select-all"}})
+    selection = CustomCheckBoxColumn(accessor='id', orderable=False, attrs={'td__input': {'class': 'select-robject', 'form': 'actions-form', 'value': 'check'},
+                                                                            "th__input": {"class": "select-all"}})
     # display column with names of robjects (link to details)
-    name = tables.LinkColumn('projects:robject_detail', args=[A('project.name'), A('pk')])
+    name = tables.LinkColumn('projects:robject_detail', args=[
+                             A('project.name'), A('pk')])
+    # display column with links to update form
+    edit = tables.LinkColumn('projects:robject_update', text='edit', args=[
+                             A('project.name'), A('pk')], orderable=False, verbose_name='')
+
     class Meta:
         model = RObject
-        attrs = {"class":"table table-hover"}
+        attrs = {"class": "table table-hover"}
         # exclude = ["files", "tags", "author", "project"]
-        fields = ["selection", "id", "name", "bio_obj", "creator", "create_date"]
+        fields = ["selection", "id", "name",
+                  "bio_obj", "creator", "create_date"]
         order_by = ['-id']
