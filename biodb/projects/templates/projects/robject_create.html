@@ -1,3 +1,5 @@
+{% extends 'base.html' %}
+{% comment %}
 {% extends "base.html" %}
 {% block content %}
     <a href="{% url 'projects:robject_create' project_name number_of_name_forms|add:1 %}">add</a>
@@ -12,3 +14,42 @@
         <button type="submit">Submit</button>
     </form>
 {% endblock content %}
+{% endcomment %}
+
+{% load render_bundle from webpack_loader %} 
+{% load staticfiles %}
+{% load bootstrap3 %}
+{% block extra_head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'projects/css/robject_create.css' %}">
+    <script type="text/javascript" src="{% static 'projects/js/robject_create.js' %}"></script>
+{% endblock extra_head %}
+
+{% block content %}
+
+    <p><span>Created at: {{ object.create_date }}</span><br/><span>Last modified: {{ object.modify_date }}</span></p>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <div id="formset" class="formset">
+            {% for form in formset %}
+                <div class="name-form">
+                    <div class="name-form-content">
+                        <button type="button" class="btn btn-sm delete-button">delete</button>
+                        {{ form.as_p }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+            <button type="button" class="btn btn-sm add-button">Add</button>
+        {% comment %}
+            
+        <div class="form">
+            {{ form.as_p }}
+        </div>
+        {% endcomment %}
+        <button class="btn">Submit</button>
+        <div id="container"></div>
+        {% render_bundle 'main' %}
+    </form>
+{% endblock %}
