@@ -33,13 +33,13 @@ build/
 00*.py
 
 # webpack files (bundles, entry point, config file)
-static/bundles/
-./webpack.config.js
-static/js/index.js
-./webpack-stats.json
+biodb/static/bundles
+webpack.config.js
+biodb/static/js/index.js
+webpack-stats.json
 
 # npm dependencies
 node_modules/
 
 # npm config file
-./package.json
+package.json
