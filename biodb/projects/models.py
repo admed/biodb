@@ -115,7 +115,7 @@ class RObject(models.Model):
 
 
     def get_absolute_url(self):
-        return "/projects/%s" % self.project_name
+        return "/projects/%s" % self.project.name
             
 
 class Name(models.Model):
@@ -129,6 +129,6 @@ class Name(models.Model):
     def __unicode__(self):
         return self.title
 
-watson.register(RObject, fields=["creator__username", "bio_obj__name"]+RObject.get_search_fields())
+watson.register(RObject, fields=["create_by__username", "bio_obj__name"]+RObject.get_search_fields())
 watson.register(User)
 watson.register(BioObj)
