@@ -11,8 +11,9 @@ urlpatterns = [
     url(r'^(?P<project_name>\w+)/$', views.RObjectListView.as_view(), name="robject_list"),
     url(r"^(?P<project_name>\w+)/(?P<robject_ids>(\d+\+)+\d+)/delete/$", views.RObjectDeleteView.as_view(), name="robject_delete"),
     url(r'^(?P<project_name>\w+)/(?P<robject_ids>\d+)/delete/$', views.RObjectDeleteView.as_view(), name="robject_delete"),
-    url(r'^(?P<project_name>\w+)/create/(?P<number_of_name_forms>[1-9]\d*)/$', views.RObjectCreateView.as_view(), name="robject_create"),
-    url(r'^(?P<project_name>\w+)/(?P<pk>[0-9]+)/details/$', views.RObjectDetailView.as_view(), name="robject_detail"),
-    # url(r'^(?P<project_name>\w+)/(?P<pk>[0-9]+)/edit/$', RObjectUpdate.as_view(), name='robject_edit'),
+    url(r'^(?P<project_name>\w+)/create/$', views.create_robject, name="robject_create"),
+    url(r'^(?P<project_name>\w+)/(?P<pk>\d+)/details/$', views.RObjectDetailView.as_view(), name="robject_detail"),
+    # url(r'^(?P<project_name>\w+)/(?P<robject_pk>\d+)/edit/$', views.RObjectUpdateView.as_view(), name='robject_edit'),
+    url(r'^(?P<project_name>\w+)/(?P<robject_pk>\d+)/edit/$', views.RObjectUpdateView, name='robject_update'),
     
 ]

@@ -14,8 +14,9 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.http import Http404
 from patches.shortcuts import get_objects_or_404
-from django.forms import modelform_factory, modelformset_factory
+from django.forms import modelform_factory, modelformset_factory, inlineformset_factory, formset_factory
 from rebar.group import formgroup_factory
+from django import forms
 
 
 # Create your views here.
@@ -38,6 +39,7 @@ class ProjectListView(LoginRequiredMixin, PermissionListMixin, generic.ListView)
     model = Project
     context_object_name = "projects"
 
+
 class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
     """
     View for edit project data.
@@ -49,6 +51,7 @@ class ProjectUpdateView(PermissionRequiredMixin, generic.UpdateView):
     fields = ["name", "description"]
 
 # Robject views
+
 
 class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, SingleTableMixin, generic.FormView, mixins.SearchMixin):
     """
@@ -136,23 +139,9 @@ class RObjectListView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, Si
     def get_context_data(self, **kwargs):
         context = super(RObjectListView, self).get_context_data(**kwargs)
         context.update({
-                "kwargs":self.kwargs
-            })
+            "kwargs": self.kwargs
+        })
         return context
-
-
-class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleMixin, generic.DeleteView):
-    """
-    Delete one or more RObjects
-    """
-
-    permission_required = ['projects.can_visit_project', 'projects.can_modify_project_content']
-    model = RObject
-    raise_exception = True
-
-    def get_success_url(self):
-        return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
-
 
 
 class RObjectDetailView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.DetailView):
@@ -165,65 +154,140 @@ class RObjectDetailView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
     raise_exception = True
 
 
-class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.FormView):
-    permission_required = ['projects.can_visit_project', 'projects.can_modify_project_content']
-    raise_exception = True
+class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.DeleteMultipleMixin, generic.DeleteView):
+    """
+    Delete one or more RObjects
+    """
+
+    permission_required = ['projects.can_visit_project',
+                           'projects.can_modify_project_content']
     model = RObject
-    template_name = "projects/robject_create.html"
+    raise_exception = True
 
-    def get_form_class(self):
-        """
-            Create form class by combining model form and formset. 
-        """
-        # create RObject model form
-        RObjectForm = modelform_factory(RObject, exclude=("project","creator",))
-        # create Name formset
-        NameFormSet = modelformset_factory(
-            Name, exclude=("robject",), formset=BaseNameFormSet, 
-            extra=int(self.kwargs["number_of_name_forms"]))
-        # join above forms into one form using rebar's formgroup_factory
-        RObjectFormGroup = formgroup_factory(
-            (
-                (NameFormSet, "name"),
-                (RObjectForm, "robject"),
-            ),
-        )
-        return RObjectFormGroup
+    def get_success_url(self):
+        return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
 
-    def form_valid(self, form): 
-        """
-            Get objects from forms, manually add fields and save. 
-        """
-        # create robject from form, but not save it!
-        robject = form.robject.save(commit=False)
 
-        # bound robject with project and User
-        robject.project = self.get_permission_object()
-        robject.creator = self.request.user
+# class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.FormView):
+#     permission_required = ['projects.can_visit_project',
+#                            'projects.can_modify_project_content']
+#     raise_exception = True
+#     model = RObject
+#     template_name = "projects/robject_create.html"
+
+#     def get_form_class(self):
+#         """
+#             Create form class by combining model form and formset. 
+#         """
+#         # create RObject model form
+#         RObjectForm = modelform_factory(
+#             RObject, exclude=("project", "creator",))
+#         # create Name formset
+#         NameFormSet = modelformset_factory(
+#             Name, exclude=("robject",), formset=BaseNameFormSet,
+#             extra=int(self.kwargs["number_of_name_forms"]))
+#         # join above forms into one form using rebar's formgroup_factory
+#         RObjectFormGroup = formgroup_factory(
+#             (
+#                 (NameFormSet, "name"),
+#                 (RObjectForm, "robject"),
+#             ),
+#         )
+#         return RObjectFormGroup
+
+#     def form_valid(self, form):
+#         """
+#             Get objects from forms, manually add fields and save. 
+#         """
+#         # create robject from form, but not save it!
+#         robject = form.robject.save(commit=False)
+
+#         # bound robject with project and User
+#         robject.project = self.get_permission_object()
+#         robject.creator = self.request.user
+
+#         # now save it
+#         robject.save()
+
+#         # the same story with names
+#         names = form.name.save(commit=False)
+
+#         # iterate over names, bound to robject and save
+#         for name in names:
+#             name.robject = robject
+#             name.save()
+
+#         return redirect(self.get_success_url())
+
+#     def get_context_data(self, **kwargs):
+#         """
+#             Update context with url kwargs.
+#         """
+#         context = super(RObjectCreateView, self).get_context_data(**kwargs)
+
+#         # access kwargs in template
+#         context.update(self.kwargs)
+
+#         return context
+
+#     def get_success_url(self):
+#         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
+
+def create_robject(request, project_name):
+    # get Name ModelForm 
+    NameModelForm = modelform_factory(Name, exclude=("robject", ))
+    RObjectModelForm = modelform_factory(RObject, exclude=())
+
+    if request.method == "POST":
+        # calculate number of form in formset using POST data
+        formset_number = request.POST["name-TOTAL_FORMS"]
+        # create formset class using 
+        NameModelFormset = formset_factory(NameModelForm, can_delete=True, extra=formset_number)
+        # get formset instance
+        formset = NameModelFormset(request.POST, prefix="name")
+
+        if formset.is_valid():
+            for form in formset:
+                form.save()        
+            # submit form and redirect
+            return redirect(reverse('projects:robject_list', kwargs={"project_name": project_name}))
+    else:
+        # get formset class
+        NameModelFormset = formset_factory(NameModelForm, extra=3)        
+        # render form and formset
+        formset = NameModelFormset(prefix="name")
+        form = RObjectModelForm()
+        return render(request, "projects/robject_update.html", {"form":form,"formset":formset})
+
+class RObjectUpdateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.TemplateView):
+    permission_required = ['projects.can_visit_project',
+                           'projects.can_modify_project_content']
+    raise_exception = True
+    # model = RObject
+    template_name = "projects/robject_update.html"
+    # fields = "__all__"
+
+    # def get_form_class(self):
+    #     RObjectInlineFormSet = inlineformset_factory(
+    #         RObject, Name, fields=('title', 'primary'), extra=1)
         
-        # now save it
-        robject.save()
+    #     self.form_class = RObjectInlineFormSet 
+    #     return RObjectInlineFormSet
 
-        # the same story with names 
-        names = form.name.save(commit=False)
+    # def form_valid(self, form):
+    #     if form.deleted_forms:
+    #         form.save()
+    #         new_form = self.form_class(instance=self.object)
+    #         context = self.get_context_data()
+    #         context.update({
+    #                 "form":new_form
+    #             })
+    #         return render(self.request, self.template_name, context)
+    #     else:
+    #         return super(RObjectUpdateView, self).form_valid(form)
 
-        # iterate over names, bound to robject and save
-        for name in names:
-            name.robject = robject
-            name.save()
-
-        return redirect(self.get_success_url())
-
-    def get_context_data(self, **kwargs):
-        """
-            Update context with url kwargs.
-        """
-        context = super(RObjectCreateView, self).get_context_data(**kwargs)
-
-        # access kwargs in template
-        context.update(self.kwargs)
-
-        return context
-
+    def get(self, request, **kwargs):
+        return HttpResponse("Here, new robject update form will be build!")
+        
     def get_success_url(self):
         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
