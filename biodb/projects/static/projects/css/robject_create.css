@@ -1,0 +1,15 @@
+.name-form-content {
+    display: inline-block;
+    position: relative;
+}
+
+.delete-button {
+    position: absolute;
+    top: -20px;
+    right: -70px;
+}
+
+.add-button {
+    display: block;
+    margin: 0 0 20px;
+}
