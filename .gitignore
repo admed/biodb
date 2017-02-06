@@ -43,3 +43,6 @@ node_modules/
 
 # npm config file
 package.json
+
+# .orig files
+*.orig
