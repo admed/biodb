@@ -66,7 +66,7 @@ class RObject(models.Model):
     history = HistoricalRecords()
     bio_obj = models.ForeignKey(BioObj, null=True, blank=True)
     notes = RichTextField(null=True, blank=True) 
-    tags = models.ManyToManyField(Tag, blank=True, null=True)
+    tags = models.ManyToManyField(Tag, blank=True)
     files = models.ForeignKey(MoleculeFile, null=True, blank=True)
 
     def __str__(self):
