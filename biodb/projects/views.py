@@ -176,22 +176,35 @@ def create_robject(request, project_name):
         # calculate number of form in formset using POST data
         formset_number = request.POST["name-TOTAL_FORMS"]
         # create formset class using 
-        NameModelFormset = formset_factory(NameModelForm, can_delete=True, extra=formset_number)
+        NameModelFormset = formset_factory(NameModelForm, extra=formset_number)
         # get formset instance
         formset = NameModelFormset(request.POST, prefix="name")
+        # get form instance 
+        form = RObjectModelForm(request.POST)
 
-        if formset.is_valid():
+
+        if formset.is_valid() and form.is_valid():
+
+            robject = form.save(commit=False) # FIXME: find out why .create() not works
+            robject.save()
+
             for form in formset:
-                form.save()        
+                name = form.save(commit=False)
+                name.robject = robject
+                print "name.primary: {}".format(name.primary)
+                # name.save()
+
             # submit form and redirect
             return redirect(reverse('projects:robject_list', kwargs={"project_name": project_name}))
+        else:
+            return render(request, "projects/robject_create.html", {"form":form, "formset":formset})    
     else:
         # get formset class
-        NameModelFormset = formset_factory(NameModelForm, extra=3)        
+        NameModelFormset = formset_factory(NameModelForm, extra=1)        
         # render form and formset
-        # formset = NameModelFormset(prefix="name")
+        formset = NameModelFormset(prefix="name")
         form = RObjectModelForm()
-        return render(request, "projects/robject_create.html", {"form":form})
+        return render(request, "projects/robject_create.html", {"form":form, "formset":formset})
 
 class RObjectUpdateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.TemplateView):
     permission_required = ['projects.can_visit_project',

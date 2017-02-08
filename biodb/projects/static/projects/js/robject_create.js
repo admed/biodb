@@ -5,6 +5,8 @@ $(function(){
     })
 
     var name_form = $(".name-form").first().clone(true);
+    name_form.find("input[type=text]").val("");
+    name_form.find("input[type=checkbox]").prop("checked", false);
 
     $(".add-button").click(function(){
         // get number of forms in formset 

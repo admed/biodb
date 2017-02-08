@@ -1,21 +1,4 @@
 {% extends 'base.html' %}
-{% comment %}
-{% extends "base.html" %}
-{% block content %}
-    <a href="{% url 'projects:robject_create' project_name number_of_name_forms|add:1 %}">add</a>
-    {% if number_of_name_forms|add:-1 > 0 %}
-        <a href="{% url 'projects:robject_create' project_name number_of_name_forms|add:-1 %}">remove</a>
-    {% endif %}
-    <form method="post" action="">
-        {% csrf_token %}
-        {% for form in form.forms %}
-            <div style="margin: 50px 0px">{{ form.as_p }}</div>        
-        {% endfor %}
-        <button type="submit">Submit</button>
-    </form>
-{% endblock content %}
-{% endcomment %}
-
 {% load render_bundle from webpack_loader %} 
 {% load staticfiles %}
 {% load bootstrap3 %}
@@ -31,7 +14,7 @@
     <form action="" method="post">
         {% csrf_token %}
         {{ formset.management_form }}
-        <div id="formset" class="formset">
+        <div class="formset">
             {% for form in formset %}
                 <div class="name-form">
                     <div class="name-form-content">
@@ -42,14 +25,10 @@
             {% endfor %}
         </div>
             <button type="button" class="btn btn-sm add-button">Add</button>
-        {% comment %}
-            
         <div class="form">
             {{ form.as_p }}
         </div>
-        {% endcomment %}
         <button class="btn">Submit</button>
-        <div id="container"></div>
-        {% render_bundle 'main' %}
+        {# {% render_bundle 'main' %} #}
     </form>
 {% endblock %}
