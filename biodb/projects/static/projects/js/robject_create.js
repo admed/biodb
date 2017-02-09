@@ -18,7 +18,7 @@ $(function(){
         // clone name_form
         form = name_form.clone(true);
         // $(".formset").append(name_form.clone(true));
-        modifyForm(form = form, form_number = form_number);
+        modifyForm(form = form, form_number = form_number-1);
         // append modified form to formset
         $(".formset").append(form);
     })

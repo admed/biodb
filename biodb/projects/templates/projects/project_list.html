@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load render_bundle from webpack_loader %}
 {% load static %}
 {% block extra_head %}
     <link rel="stylesheet" type="text/css" href="{% static 'projects/css/project_list.css' %}">
@@ -17,4 +18,6 @@
             </div>
         </div>
     {% endfor %}
+    <div id="container"></div>
+    {% render_bundle 'main' %}
 {% endblock content %}
