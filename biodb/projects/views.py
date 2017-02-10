@@ -17,6 +17,7 @@ from patches.shortcuts import get_objects_or_404
 from django.forms import modelform_factory, modelformset_factory, inlineformset_factory, formset_factory
 from rebar.group import formgroup_factory
 from django import forms
+import re
 
 
 # Create your views here.
@@ -167,44 +168,55 @@ class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
     def get_success_url(self):
         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
 
+
 def create_robject(request, project_name):
-    # get Name ModelForm 
+    # get Name ModelForm
     NameModelForm = modelform_factory(Name, exclude=("robject", ))
     RObjectModelForm = modelform_factory(RObject, exclude=())
 
     if request.method == "POST":
-        # calculate number of form in formset using POST data
-        formset_number = request.POST["name-TOTAL_FORMS"]
-        # create formset class using 
-        NameModelFormset = formset_factory(NameModelForm, extra=formset_number)
-        # get formset instance
-        formset = NameModelFormset(request.POST, prefix="name")
-        # get form instance 
+        # define function to extract id from string
+        get_id = lambda name: re.search("\d+", name).group()
+        # get set of name form id's
+        id_list = {get_id(name) for name in request.POST.keys()
+                   if "name" in name}
+        # order list 
+        id_list = sorted(list(id_list))
+        print id_list
+        # create list with tuples
+        list_list = tuple(["(NameModelForm,{})".format(id) for id in id_list])
+        # make list a tuple
+        tuple_list = tuple(list_list)
+        # create string to evaluate into formgroup class
+        string = "formgroup_factory(({}))".format(",".join(tuple_list))
+        print string
+        # get formgroup class
+        FormGroup = eval(string)
+        for key, value in request.POST.iteritems():
+            print key, value
+        # instatie FormGroup
+        formgroup = FormGroup(request.POST, prefix="name")
+        # instatie RObjectModelForm
         form = RObjectModelForm(request.POST)
 
-
-        if formset.is_valid() and form.is_valid():
-
-            robject = form.save(commit=False) # FIXME: find out why .create() not works
+        if form.is_valid() and formgroup.is_valid():
+            robject = form.save(commit=False)
             robject.save()
 
-            for form in formset:
-                name = form.save(commit=False)
+            for nameform in formgroup:
+                name = nameform.save(commit=False)
                 name.robject = robject
-                print "name.primary: {}".format(name.primary)
-                # name.save()
+                name.save()
 
-            # submit form and redirect
             return redirect(reverse('projects:robject_list', kwargs={"project_name": project_name}))
-        else:
-            return render(request, "projects/robject_create.html", {"form":form, "formset":formset})    
+
     else:
-        # get formset class
-        NameModelFormset = formset_factory(NameModelForm, extra=1)        
-        # render form and formset
-        formset = NameModelFormset(prefix="name")
+        FormGroup = formgroup_factory(((NameModelForm, "1"),))
+        formgroup = FormGroup(prefix="name")
         form = RObjectModelForm()
-        return render(request, "projects/robject_create.html", {"form":form, "formset":formset})
+    return render(request, "projects/robject_create.html", 
+        {"formgroup": formgroup, "form": form})
+
 
 class RObjectUpdateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.TemplateView):
     permission_required = ['projects.can_visit_project',
@@ -217,8 +229,8 @@ class RObjectUpdateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
     # def get_form_class(self):
     #     RObjectInlineFormSet = inlineformset_factory(
     #         RObject, Name, fields=('title', 'primary'), extra=1)
-        
-    #     self.form_class = RObjectInlineFormSet 
+
+    #     self.form_class = RObjectInlineFormSet
     #     return RObjectInlineFormSet
 
     # def form_valid(self, form):
@@ -235,6 +247,6 @@ class RObjectUpdateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
 
     def get(self, request, **kwargs):
         return HttpResponse("Here, new robject update form will be build!")
-        
+
     def get_success_url(self):
         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})

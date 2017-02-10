@@ -4,23 +4,26 @@ $(function(){
         $(this).parents(".name-form-content").detach()
     })
 
-    var name_form = $(".name-form").first().clone(true);
+    var name_form = $(".name-form").last().clone(true);
+    name_form.find(".errorlist").remove();
     name_form.find("input[type=text]").val("");
     name_form.find("input[type=checkbox]").prop("checked", false);
 
+    // create counter to store present largest form id 
+    var id_counter = name_form.find("input[type=text]").attr("name").match(/\d+/)[0];
+    id_counter = parseInt(id_counter,10);
+
     $(".add-button").click(function(){
-        // get number of forms in formset 
-        var form_number = $("#id_name-TOTAL_FORMS").val();
-        // increment form_number        
-        form_number = parseInt(form_number,10) + 1 + "";
-        // set incremented form_number 
-        $("#id_name-TOTAL_FORMS").val(form_number);
-        // clone name_form
+        // increment id_counter 
+        id_counter ++;
+        // get id str        
+        id = parseInt(id_counter,10) + "";
+        // clone stored form
         form = name_form.clone(true);
-        // $(".formset").append(name_form.clone(true));
-        modifyForm(form = form, form_number = form_number);
+        // modify form
+        modifyForm(form = form, form_number = id);
         // append modified form to formset
-        $(".formset").append(form);
+        $(".formgroup").append(form);
     })
 
 // MODULE

@@ -13,9 +13,8 @@
 
     <form action="" method="post">
         {% csrf_token %}
-        {{ formset.management_form }}
-        <div class="formset">
-            {% for form in formset %}
+        <div class="formgroup">
+            {% for form in formgroup %}
                 <div class="name-form">
                     <div class="name-form-content">
                         <button type="button" class="btn btn-sm delete-button">delete</button>
@@ -25,9 +24,11 @@
             {% endfor %}
         </div>
             <button type="button" class="btn btn-sm add-button">Add</button>
+        
         <div class="form">
             {{ form.as_p }}
         </div>
+        
         <button class="btn">Submit</button>
         {# {% render_bundle 'main' %} #}
     </form>
