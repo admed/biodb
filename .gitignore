@@ -33,7 +33,7 @@ build/
 00*.py
 
 # webpack files (bundles, entry point, config file)
-biodb/static/bundles
+biodb/static/js/bundles/
 webpack.config.js
 biodb/static/js/index.js
 webpack-stats.json
@@ -44,4 +44,5 @@ node_modules/
 # .orig files
 *.orig
 
+# bundles files
 
