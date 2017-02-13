@@ -41,7 +41,6 @@ webpack-stats.json
 # npm dependencies
 node_modules/
 
-
 # .orig files
 *.orig
 
