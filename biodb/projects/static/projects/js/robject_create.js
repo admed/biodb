@@ -1,7 +1,10 @@
 $(function(){
 // SCRIPT
     $(".delete-button").click(function(){
-        $(this).parents(".name-form-content").detach()
+        // if only one .name-form dont delete  
+        if($(".name-form").length > 1){
+            $(this).parents(".name-form").remove()
+        }
     })
 
     var name_form = $(".name-form").last().clone(true);
@@ -23,7 +26,7 @@ $(function(){
         // modify form
         modifyForm(form = form, form_number = id);
         // append modified form to formset
-        $(".formgroup").append(form);
+        $(".name-forms").append(form);
     })
 
 // MODULE
