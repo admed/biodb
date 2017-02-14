@@ -1,5 +1,5 @@
 from django import forms
-from models import Name
+from models import Name, RObject
 from django.forms import BaseModelFormSet
 
 class SearchFilterForm(forms.Form):
@@ -15,4 +15,16 @@ class BaseNameFormSet(BaseModelFormSet):
     def __init__(self, *args, **kwargs):
         super(BaseNameFormSet, self).__init__(*args, **kwargs)
         self.queryset = Name.objects.none()
+
+class NameForm(forms.ModelForm):
+    class Meta:
+       model = Name
+       exclude = ("robject", )
+
+class RObjectForm(forms.ModelForm):
+    class Meta:
+        model = RObject
+        exclude = ()
+    
+
 
