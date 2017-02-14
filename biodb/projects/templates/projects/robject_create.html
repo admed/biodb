@@ -13,22 +13,22 @@
 
     <form action="" method="post">
         {% csrf_token %}
-        <div class="formgroup">
+        <div class="name-forms">
             {% for form in formgroup %}
-                <div class="name-form">
-                    <div class="name-form-content">
-                        <button type="button" class="btn btn-sm delete-button">delete</button>
-                        {{ form.as_p }}
+                {% if not form.prefix == 'group-robject' %}
+                    <div class="name-form">
+                        <div class="name-form-content">
+                            <button type="button" class="btn btn-sm delete-button">delete</button>
+                            {{ form.as_p }}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
             {% endfor %}
         </div>
-            <button type="button" class="btn btn-sm add-button">Add</button>
-        
-        <div class="form">
-            {{ form.as_p }}
+        <button type="button" class="btn btn-sm add-button">Add</button>
+        <div class="robject-form">
+            {{ formgroup.robject.as_p }}
         </div>
-        
         <button class="btn">Submit</button>
     </form>
 {% endblock %}
