@@ -16,7 +16,7 @@ from django.http import Http404
 from patches.shortcuts import get_objects_or_404
 from django.forms import modelform_factory, modelformset_factory, inlineformset_factory, formset_factory
 from rebar.group import formgroup_factory
-from django import forms
+from forms import NameForm, RObjectForm
 import re
 
 
@@ -169,6 +169,32 @@ class RObjectDeleteView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
 
 
+class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, mixins.MutableMultipleFormMixin, generic.FormView):
+    permission_required = ['projects.can_visit_project',
+                       'projects.can_modify_project_content']
+    raise_exception = True
+    forms = [(NameForm, "name-1"), (RObjectForm, "robject")]
+    cloneable_forms = {"name":NameForm}
+    template_name = "projects/robject_create.html"
+    formgroup_context_name = "formgroup"
+
+    def dispatch(self, request, *args, **kwargs):
+        print len(self.forms)
+        return super(RObjectCreateView, self).dispatch(request, *args, **kwargs)
+    def get_success_url(self):
+        return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
+
+    def form_valid(self, form):
+        robject = form.robject.save(commit=False)
+        robject.save()
+        for iform in form:
+            if "name" in iform.prefix:
+                name = iform.save(commit=False)
+                name.robject = robject
+                name.save()
+
+        return redirect(self.get_success_url())
+
 def create_robject(request, project_name):
     # get Name ModelForm
     NameModelForm = modelform_factory(Name, exclude=("robject", ))
@@ -177,45 +203,50 @@ def create_robject(request, project_name):
     if request.method == "POST":
         # define function to extract id from string
         get_id = lambda name: re.search("\d+", name).group()
+
         # get set of name form id's
         id_list = {get_id(name) for name in request.POST.keys()
                    if "name" in name}
-        # order list 
+
+        # order list
         id_list = sorted(list(id_list))
-        print id_list
+
         # create list with tuples
-        list_list = tuple(["(NameModelForm,{})".format(id) for id in id_list])
+        list_list = ["(NameModelForm,'name{}')".format(id)
+                           for id in id_list]
         # make list a tuple
         tuple_list = tuple(list_list)
+
         # create string to evaluate into formgroup class
-        string = "formgroup_factory(({}))".format(",".join(tuple_list))
+        string = "formgroup_factory(({},(RObjectModelForm, 'robject'),))".format(
+            ",".join(tuple_list))
         print string
+
         # get formgroup class
         FormGroup = eval(string)
-        for key, value in request.POST.iteritems():
-            print key, value
-        # instatie FormGroup
-        formgroup = FormGroup(request.POST, prefix="name")
-        # instatie RObjectModelForm
-        form = RObjectModelForm(request.POST)
 
-        if form.is_valid() and formgroup.is_valid():
-            robject = form.save(commit=False)
+        # instatie FormGroup
+        formgroup = FormGroup(request.POST, prefix="group")
+
+        if formgroup.is_valid():
+            robject = formgroup.robject.save(commit=False)
             robject.save()
 
-            for nameform in formgroup:
-                name = nameform.save(commit=False)
-                name.robject = robject
-                name.save()
+            for form in formgroup:
+                if "name" in form.prefix:
+                    name = form.save(commit=False)
+                    name.robject = robject
+                    name.save()
 
             return redirect(reverse('projects:robject_list', kwargs={"project_name": project_name}))
 
     else:
-        FormGroup = formgroup_factory(((NameModelForm, "1"),))
-        formgroup = FormGroup(prefix="name")
-        form = RObjectModelForm()
-    return render(request, "projects/robject_create.html", 
-        {"formgroup": formgroup, "form": form})
+        FormGroup = formgroup_factory(
+            ((NameModelForm, "name1"), (RObjectModelForm, "robject"),))
+        formgroup = FormGroup(prefix="group")
+
+    return render(request, "projects/robject_create.html",
+                  {"formgroup": formgroup})
 
 
 class RObjectUpdateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, generic.TemplateView):
