@@ -56,13 +56,13 @@ class BioObj(models.Model):
 
 class RObject(models.Model):
     project = models.ForeignKey(Project, null=True)
-    create_date = models.DateField(null=True)
+    create_date = models.DateField(null=True, blank=True)
     modify_date = models.DateTimeField(
-        'date modified', null=True, auto_now=True)
+        'date modified', null=True, auto_now=True, blank=True)
     changed_by = models.ForeignKey(
-        'auth.User', null=True, related_name='changed_by')
+        'auth.User', null=True, related_name='changed_by', blank=True)
     author = models.CharField(max_length=100, null=True, blank=True)
-    create_by = models.ForeignKey(User, null=True)
+    create_by = models.ForeignKey(User, null=True, blank=True)
     history = HistoricalRecords()
     bio_obj = models.ForeignKey(BioObj, null=True, blank=True)
     notes = RichTextField(null=True, blank=True) 
