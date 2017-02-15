@@ -1,5 +1,5 @@
-$(function(){
-// SCRIPT
+requirejs(["robject_create/cloneable_forms"], function() {
+
     $(".delete-button").click(function(){
         // if only one .name-form dont delete  
         if($(".name-form").length > 1){
@@ -29,4 +29,4 @@ $(function(){
         $(".name-forms").append(form);
     })
 
-});
+})
