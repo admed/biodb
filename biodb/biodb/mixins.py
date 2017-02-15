@@ -79,9 +79,11 @@ class MultipleFormMixin(object):
         """
             Replace default form context name with self.formgroup_context_name.
         """
-        
         context = super(MultipleFormMixin, self).get_context_data(**kwargs)
-        context[self.formgroup_context_name] = context.pop("form")
+        
+        if hasattr(self, "formgroup_context_name"):
+            context[self.formgroup_context_name] = context.pop("form")
+        
         return context
 
 
@@ -110,12 +112,11 @@ class MutableMultipleFormMixin(MultipleFormMixin):
 
             for corePrefix, form_class in self.cloneable_forms.iteritems():
                 # get forms full prefixes from POST using corePrefix
-                fullPrefixes = self.get_forms_prefixes(data, corePrefix)
-                print "fullPrefixes: {}".format(fullPrefixes)
+                fullPrefixes = self.get_prefixes(data, corePrefix)
                 # bulild list of tuples to replace in self.forms
                 newTuples = [(form_class, prefix) for prefix in fullPrefixes]
                 # update self.forms
-                self.update_forms(listOfTuples=forms,
+                self.update_formgroup(listOfTuples=forms,
                                  toPaste=newTuples, cutTupleWith=corePrefix)
 
             return super(MutableMultipleFormMixin, self).get_form_class(forms=forms)
@@ -124,7 +125,7 @@ class MutableMultipleFormMixin(MultipleFormMixin):
         else:
             return super(MutableMultipleFormMixin, self).get_form_class()
 
-    def get_forms_prefixes(self, data, prefix):
+    def get_prefixes(self, data, prefix):
         """
             Extract given form id's from POST data using prefix.
         """
@@ -145,13 +146,9 @@ class MutableMultipleFormMixin(MultipleFormMixin):
         return sorted(ids)
 
     @staticmethod
-    def update_forms(listOfTuples, toPaste, cutTupleWith):
+    def update_formgroup(listOfTuples, toPaste, cutTupleWith):
         # find id of tuples to cut 
         idxs = [i for i in range(len(listOfTuples))
                 if cutTupleWith in listOfTuples[i][1]]
-        print "idxs: {}".format(idxs) 
         # replace old tuples with new ones
         listOfTuples[min(idxs):max(idxs) + 1] = toPaste
-        print toPaste
-        # reuturn new list of tuples
-        # return listOfTuples
