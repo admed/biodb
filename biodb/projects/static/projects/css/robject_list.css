@@ -41,3 +41,10 @@
     display: block;
     width: 100%;
 } 
+
+table {
+    margin-top: 20px;
+}
+thead {
+    background-color: #e7e7e7;
+}
