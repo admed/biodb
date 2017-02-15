@@ -178,9 +178,6 @@ class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
     template_name = "projects/robject_create.html"
     formgroup_context_name = "formgroup"
 
-    def dispatch(self, request, *args, **kwargs):
-        print len(self.forms)
-        return super(RObjectCreateView, self).dispatch(request, *args, **kwargs)
     def get_success_url(self):
         return reverse('projects:robject_list', kwargs={"project_name": self.kwargs["project_name"]})
 
