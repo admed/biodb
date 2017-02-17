@@ -4,6 +4,9 @@ from biodb import mixins
 from projects.models import Project, RObject
 from datetime import date
 from django.http import Http404
+import mock
+import copy
+from rebar.group import FormGroup
 
 
 class ProjectPermissionMixinTests(TestCase):
@@ -103,7 +106,7 @@ class DeleteMultipleMixinTests(TestCase):
 
             def __init__(self, robject_ids):
                 self.kwargs = {
-                    "robject_ids" : robject_ids 
+                    "robject_ids": robject_ids
                 }
 
         cls.View = View
@@ -127,8 +130,56 @@ class DeleteMultipleMixinTests(TestCase):
 
         self.assertIn(self.robject1, queryset)
         self.assertIn(self.robject3, queryset)
-        
+
         # query not existing robjects
         with self.assertRaisesMessage(Http404, 'No RObject matches the given query.'):
-            queryset = mixins.DeleteMultipleMixin.get_object(self.View("4+5+6"))
+            queryset = mixins.DeleteMultipleMixin.get_object(
+                self.View("4+5+6"))
 
+
+class MultipleFormMixinTests(TestCase):
+    def setUp(self):
+        from django.forms import Form
+        
+        # create view imitation
+        class FakeViewParent():
+            forms = [(Form, "form1"), (Form, "form2")]
+
+            def get_context_data(self):
+                return {"form": "value"}
+
+        class FakeViewChild(FakeViewParent):
+            formgroup_context_name = "formgroup"
+
+        # copy mixins.MultipleFormClass
+        self.MFC = copy.copy(mixins.MultipleFormMixin)
+        self.FakeViewParent, self.FakeViewChild = FakeViewParent, FakeViewChild
+
+    def test_get_context_data(self):
+
+        # update base class tuple
+        self.MFC.__bases__ = (object, self.FakeViewParent)
+        
+        # call get_context_data
+        context = self.MFC().get_context_data()
+
+        self.assertEqual(context, {"form": "value"})
+
+        # update base class tuple
+        self.MFC.__bases__ = (object, self.FakeViewChild)
+        
+        # call get_context_data
+        context = self.MFC().get_context_data()
+
+        self.assertEqual(context, {"formgroup": "value"})
+
+    def test_get_form_class(self):
+
+        # update base class tuple
+        self.MFC.__bases__ = (object, self.FakeViewParent)
+        
+        # get form_class using get_form_class method
+        FormClass = self.MFC().get_form_class()
+
+        self.assertTrue(FormClass, FormGroup)
+        self.assertTrue(FormClass.form_classes, self.MFC.forms)
