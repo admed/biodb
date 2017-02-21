@@ -5,6 +5,7 @@ from watson import search as watson
 from rebar.group import formgroup_factory
 from django.views import generic
 import re
+from django.core.exceptions import ImproperlyConfigured
 # from django.views.generic.edit import DeletionMixin
 # from django.core.exceptions import ImproperlyConfigured
 # from django.http import HttpResponseRedirect
@@ -57,98 +58,206 @@ class DeleteMultipleMixin():
 
 
 class MultipleFormMixin(object):
-    """
-       Mix it with FormView to handle multiple forms as a single group.
-       Requires:
-       - **forms** attribute: list of tuples '(form_class, form_prefix)' 
-       you want to use in group.
-       - your own form_valid() method      
+    """ Mixin provides multiple form handling in class base view. 
 
+        Mix it with FormView to handle multiple forms as a single group. 
+        Group may consist of any number of Forms, ModelForms, FormSets and 
+        ModelFormSets. Group members are easly avalible through dotted convention.
+
+        Note: handle validated data in your own form_valid method. Group 
+            is treated like a single form which means has its own is_valid method.
+
+        Attributes:
+            forms (list): List with tuples. Describe all forms included in group
+                (order preserved). Each tuple contains form class and it's label 
+                (prefix). Prefix consist of name-part and number separated by hyphen.
+
+            formgroup_context_name (str, additional argument): Specify form variable name to use in 
+                template instead of 'form'.
     """
+
+    def __init__(self, forms=None, formgroup_context_name=None):
+        if forms and formgroup_context_name:
+            self.forms = forms
+            self.formgroup_context_name = formgroup_context_name
 
     def get_form_class(self, forms=None):
-        """
-            Create formgroup using django-rebar. 
-        """
+        """ Create FormGroup instance using django-rebar's formgroup_factory.
 
-        # print self.forms
-        # print forms
-        return formgroup_factory(*[forms or self.forms])
+            Args:
+                forms (list): use instead of self.forms   
+        """
+        try:
+            return formgroup_factory(*[forms or self.forms])
+        except NameError:
+            raise ImproperlyConfigured(
+                "No forms to display. Provide forms attribute.")
 
     def get_context_data(self, **kwargs):
-        """
-            Replace default form context name with self.formgroup_context_name.
+        """ Replace default form context name.
+
+            Use self.formgroup_context_name if provided. 
         """
         context = super(MultipleFormMixin, self).get_context_data(**kwargs)
-        
+
         if hasattr(self, "formgroup_context_name"):
             context[self.formgroup_context_name] = context.pop("form")
-        
+
         return context
 
 
 class MutableMultipleFormMixin(MultipleFormMixin):
-    """
-       Mix it with FormView to handle multiple view as a single group. 
-       However some forms may be cloneable, which means they can be 
-       multiplied and/or reduced using JS.
+    """ Mixin enhance parent functionality with cloneable forms handling.  
 
-       Requires:
-       - **forms** attribute: list of tuples '(form_class, form_prefix)' 
-       you want to use in group.
-       - your own form_valid() method      
+        Some forms from formgroup may be cloneable, which means they can be 
+        multiplied and/or reduced using JS (they number may vary).
+
+        Attributes: 
+            cloneable_forms (dict): Indicate all forms capable to clone. 
+                Keys are name-part of prefixes (look at forms attribute 
+                explanation in MultipleFormMixin doc), values are form classes.
     """
+
+    def __init__(self, forms=None, formgroup_context_name=None, cloneable_forms=None):
+        if cloneable_forms:
+            self.cloneable_forms = cloneable_forms
+        super(MutableMultipleFormMixin, self).__init__(
+            forms=forms, formgroup_context_name=formgroup_context_name)
 
     def get_form_class(self):
+        """ For any cloneable form call method to update self.forms.
+
+            For any name-part prefix (subprefix) in cloneable_forms call special
+            method which checks if form has been clonned and updates self.forms.              
         """
-            Create and return FormGroup subclass depending on the request.method.  
-        """
-        # if POST method, update self.forms
-        # self.forms must be list of tuples (form_class, "prefix")
+
+        # If POST update self.forms. Iterate over subprefixes and each time pass
+        # all required data to self.update_list_of_tuples.
         if self.request.method == "POST":
-            data = self.request.POST
-            forms = list(self.forms) # REMEMBER: do not modify self.forms, becouse it's 
-            # cached somewhere 
+            self.list_of_tuples = list(self.forms)
+            POST_data = self.request.POST
+            cloneable_forms = self.cloneable_forms
 
-            for corePrefix, form_class in self.cloneable_forms.iteritems():
-                # get forms full prefixes from POST using corePrefix
-                fullPrefixes = self.get_prefixes(data, corePrefix)
-                # bulild list of tuples to replace in self.forms
-                newTuples = [(form_class, prefix) for prefix in fullPrefixes]
-                # update self.forms
-                self.update_formgroup(listOfTuples=forms,
-                                 toPaste=newTuples, cutTupleWith=corePrefix)
+            for subprefix, form_class in cloneable_forms.iteritems():
+                self.update_list_of_tuples(
+                    # list_of_tuples=list_of_tuples,
+                    POST_data=POST_data,
+                    subprefix=subprefix,
+                    form_class=form_class
+                )
 
-            return super(MutableMultipleFormMixin, self).get_form_class(forms=forms)
+            return super(MutableMultipleFormMixin, self).get_form_class(forms=self.list_of_tuples)
 
         # if GET call superclass method
         else:
             return super(MutableMultipleFormMixin, self).get_form_class()
 
-    def get_prefixes(self, data, prefix):
-        """
-            Extract given form id's from POST data using prefix.
-        """
-        # container for id's strings
-        ids = list()
-        # create a pattern to search
-        pattern = "{}-\d+".format(prefix)
+    def update_list_of_tuples(self, POST_data, subprefix, form_class):
+        """ Update single cloneable form in self.forms. 
 
-        for key in data.keys():
-            # match to pattern
-            id = re.search(pattern, key)
-            # if matched
-            if id:
-                ids.append(id.group())
-        # get uniqe 
-        ids = set(ids)
-        # sort aphabetically
-        return sorted(ids)
+            Call several methods in sequence and pass them appriopriate data. 
+
+            Args:
+                list_of_tuples (list): copy of self.forms
+                POST_data (dict): copy of request.POST dict
+                subprefix (str): name-part of form prefix
+        """
+        list_of_tuples = self.list_of_tuples
+        min_index = self.find_index(subprefix, list_of_tuples)
+        max_index = self.find_index(subprefix, list_of_tuples, max=True)
+        prefix_patt = self.create_prefix_pattern(subprefix)
+        prefixes = self.find_prefixes_in_POST(prefix_patt, POST_data)
+        prefixes = self.get_uniqe(prefixes)
+        prefixes = self.get_sorted(prefixes)
+        list_to_paste = self.prepare_list_to_paste(prefixes, form_class)
+        self.replace_sublist_by_list(
+            min_index, max_index, self.list_of_tuples, list_to_paste)
+
+        # return mod_list_of_tuples
 
     @staticmethod
-    def update_formgroup(listOfTuples, toPaste, cutTupleWith):
-        # find id of tuples to cut 
-        idxs = [i for i in range(len(listOfTuples))
-                if cutTupleWith in listOfTuples[i][1]]
-        # replace old tuples with new ones
-        listOfTuples[min(idxs):max(idxs) + 1] = toPaste
+    def find_index(snippet, list_of_tuples, max=False):
+        """ Search for tuple in list of tuples using snippet str. 
+
+            Search base on second tuple element. Return first/last 
+            occurence.  
+
+            Args:
+                snippet (str)
+                list_of_tuples (list): list with 2 element tuples
+                max (bool): indicate whether return first/last occurence.
+
+            Examples:
+                >>> x = [("dog", "A-12"), ("cat", "A-13"), ("horse", "B-10")]
+                >>> find_index("A", x)
+                0
+                >>> find_index("A", x, max=True)
+                1     
+        """
+
+        lst = list_of_tuples
+        if max:
+            lst = reversed(lst)
+        for i, e in enumerate(lst):
+            if snippet in e[1]:
+                return i
+
+    @staticmethod
+    def replace_sublist_by_list(min_idx, max_idx, lst, list_to_paste):
+        """ Replace slice from list using list_to_paste
+
+            Args:
+                min_idx (int): slice start index
+                max_idx (int): slice end index
+                lst (list): list to slice
+                list_to_paste (list) 
+        """
+        lst[min_idx:max_idx] = list_to_paste
+
+    @staticmethod
+    def create_prefix_pattern(subprefix):
+        """ Create pattern to search through POST keys.
+
+            Args:
+                subprefix (str): subprefix (str): name-part of form prefix
+        """
+        pattern = "{}-\d+".format(subprefix)
+        return pattern
+
+    @staticmethod
+    def find_prefixes_in_POST(prefix_patt, POST_data):
+        """ Get input names from POST keys using prefix pattern. 
+
+            Return keys from POST data that match to prefix pattern str.
+
+            Args:
+                prefix_patt (str)
+                POST_data (dict)
+        """
+        prefixes = list()
+        for key in POST_data.keys():
+            prefix = re.search(prefix_patt, key)
+            if prefix:
+                prefixes.append(prefix.group())
+        return prefixes
+
+    @staticmethod
+    def get_uniqe(lst):
+        return set(lst)
+
+    @staticmethod
+    def get_sorted(lst):
+        return sorted(lst)
+
+    @staticmethod
+    def prepare_list_to_paste(prefixes, form_class):
+        """ Prepare list of tuples to paste into old formgroup list of tuples.
+
+            Args:
+                prefixes (list): each of prefix in prefixes will be placed in 
+                    separate tuple 
+                form_class (specific form class object): object will be placed
+                    in each tuple 
+        """
+        list_to_paste = [(form_class, e) for e in prefixes]
+        return list_to_paste
