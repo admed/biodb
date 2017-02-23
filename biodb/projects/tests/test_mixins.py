@@ -140,8 +140,8 @@ class DeleteMultipleMixinTests(TestCase):
 
 
 # FIXME: thise test case could be written
+# more elegantly, possible using mock
 class MultipleFormMixinTests(TestCase):
-                                        # more elegantly, possible using mock
     def setUp(self):
         from django.forms import Form
 
@@ -190,10 +190,16 @@ class MultipleFormMixinTests(TestCase):
 
 
 class MutableMultipleFormMixinTests(TestCase):
+    # below testing concern calls to other methods inside tested method   
 
     @mock.patch('biodb.mixins.MutableMultipleFormMixin.handle_post')
     @mock.patch('biodb.mixins.MultipleFormMixin.get_form_class')
     def test_get_form_class(self, method_called_if_get, method_called_if_post):
+        """ Test only methods calls inside tested method. 
+
+            Test is about checking that proper methods gets called in right order and
+            with right arguments inside tested method. This method does nothing more.  
+        """
         m = MutableMultipleFormMixin()
 
         m.request = mock.Mock()
@@ -207,13 +213,19 @@ class MutableMultipleFormMixinTests(TestCase):
 
     @mock.patch('biodb.mixins.MultipleFormMixin.get_form_class')
     @mock.patch('biodb.mixins.MutableMultipleFormMixin.update_list_of_tuples_attr')
-    def test_handle_post(self, update_list_of_tuples_attr, super_get_form_class):
+    def test_handle_post(self, update_list_of_tuples_attr, get_form_class):
+        """ Test only methods calls inside tested method. 
+
+            Test is about checking that proper methods gets called in right order and
+            with right arguments inside tested method. This method does nothing more.  
+        """
+        # specify value returned by mocked method
         update_list_of_tuples_attr.return_value = "mod_list_of_tuples"
 
         m = MutableMultipleFormMixin()
         m.forms = [("class1", "prefixA-1"), ("class1",
                                              "prefixA-2"), ("class2", "prefixB")]
-        m.request = mock.Mock()
+        m.request = mock.Mock() 
         m.request.POST = {"prefixA-1": "dog",
                           "prefixA-3": "cat", "prefixB": "horse"}
         m.cloneable_forms = [("class1", "prefixA")]
@@ -221,13 +233,13 @@ class MutableMultipleFormMixinTests(TestCase):
         m.handle_post()
 
         self.assertEqual(update_list_of_tuples_attr.mock_calls, [call(
-                list_of_tuples = m.forms,
-                POST_data=m.request.POST,
-                subprefix="prefixA",
-                form_class="class1"
-            )])
+            list_of_tuples=m.forms,
+            POST_data=m.request.POST,
+            subprefix="prefixA",
+            form_class="class1"
+        )])
 
-        self.assertEqual(super_get_form_class.mock_calls, [call(
+        self.assertEqual(get_form_class.mock_calls, [call(
             forms="mod_list_of_tuples")])
 
     @mock.patch.multiple("biodb.mixins.MutableMultipleFormMixin",
@@ -246,9 +258,12 @@ class MutableMultipleFormMixinTests(TestCase):
                              return_value="mod_list_of_tuples")
                          )
     def test_update_list_of_tuples_attr(self, **kwargs):
-        m = MutableMultipleFormMixin()
+        """ Test only methods calls inside tested method. 
 
-        # m.list_of_tuples = "list_of_tuples"
+            Test is about checking that proper methods gets called in right order and
+            with right arguments inside tested method. This method does nothing more.  
+        """
+        m = MutableMultipleFormMixin()
 
         mod_list_of_tuples = m.update_list_of_tuples_attr(
             list_of_tuples="list_of_tuples",
@@ -269,6 +284,8 @@ class MutableMultipleFormMixinTests(TestCase):
         self.assertEqual(m.replace_sublist_by_list.mock_calls, [
                          call(0, 11, 'list_of_tuples', 'list_to_paste')])
         self.assertEqual(mod_list_of_tuples, "mod_list_of_tuples")
+
+    # below testing concern methods logic  
 
     def test_find_index(self):
         m = MutableMultipleFormMixin()
