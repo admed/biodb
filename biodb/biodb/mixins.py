@@ -114,45 +114,44 @@ class MutableMultipleFormMixin(MultipleFormMixin):
     """
 
     def get_form_class(self):
+        """ Depends of self.request.method call special method.
+        """
+
+        if self.request.method == "POST":
+            return self.handle_post()
+
+        else:
+            return super(MutableMultipleFormMixin, self).get_form_class()
+
+    def handle_post(self):
         """ For any cloneable form call method to update self.forms.
 
             For any name-part prefix (subprefix) in cloneable_forms call special
             method which checks if form has been clonned and updates self.forms.              
         """
-
-        # If POST update self.forms. Iterate over subprefixes and each time pass
-        # all required data to self.update_list_of_tuples.
-        if self.request.method == "POST":
-            return self.handle_post()
-
-        # if GET call superclass method
-        else:
-            return super(MutableMultipleFormMixin, self).get_form_class()
-    
-    def handle_post(self):
         list_of_tuples = list(self.forms)
         POST_data = self.request.POST
         cloneable_forms = self.cloneable_forms
 
         for form_class, subprefix in cloneable_forms:
             list_of_tuples = self.update_list_of_tuples_attr(
-                list_of_tuples = list_of_tuples,
+                list_of_tuples=list_of_tuples,
                 POST_data=POST_data,
                 subprefix=subprefix,
                 form_class=form_class
             )
         return super(MutableMultipleFormMixin, self).get_form_class(forms=list_of_tuples)
-        
 
     def update_list_of_tuples_attr(self, list_of_tuples, POST_data, subprefix, form_class):
         """ Update single cloneable form in self.forms. 
 
-            Call several methods in sequence and pass them appriopriate data. 
+            Call several methods in sequence and pass them appriopriate data. Return amended self.forms.
 
             Args:
                 list_of_tuples (list): copy of self.forms
                 POST_data (dict): copy of request.POST dict
                 subprefix (str): name-part of form prefix
+                form_class (Form obj): form_class of cloneable_form
         """
         min_index = self.find_index(subprefix, list_of_tuples)
         max_index = self.find_index(subprefix, list_of_tuples, max=True)
@@ -161,12 +160,11 @@ class MutableMultipleFormMixin(MultipleFormMixin):
         prefixes = self.get_uniqe(prefixes)
         prefixes = self.get_sorted(prefixes)
         list_to_paste = self.prepare_list_to_paste(prefixes, form_class)
-        
+
         mod_list_of_tuples = self.replace_sublist_by_list(
-            min_index, max_index+1, list_of_tuples, list_to_paste)
+            min_index, max_index + 1, list_of_tuples, list_to_paste)
 
         return mod_list_of_tuples
-
 
     @staticmethod
     def find_index(snippet, list_of_tuples, max=False):
@@ -194,7 +192,7 @@ class MutableMultipleFormMixin(MultipleFormMixin):
         for i, e in enumerate(lst):
             if snippet in e[1]:
                 if max:
-                    return len(lst)-i-1
+                    return len(lst) - i - 1
                 return i
 
     @staticmethod
