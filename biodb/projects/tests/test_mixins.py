@@ -5,8 +5,10 @@ from projects.models import Project, RObject
 from datetime import date
 from django.http import Http404
 import mock
+from mock import call
 import copy
 from rebar.group import FormGroup
+from biodb.mixins import MutableMultipleFormMixin
 
 
 class ProjectPermissionMixinTests(TestCase):
@@ -137,10 +139,12 @@ class DeleteMultipleMixinTests(TestCase):
                 self.View("4+5+6"))
 
 
+# FIXME: thise test case could be written
 class MultipleFormMixinTests(TestCase):
+                                        # more elegantly, possible using mock
     def setUp(self):
         from django.forms import Form
-        
+
         # create view imitation
         class FakeViewParent():
             forms = [(Form, "form1"), (Form, "form2")]
@@ -159,15 +163,15 @@ class MultipleFormMixinTests(TestCase):
 
         # update base class tuple
         self.MFC.__bases__ = (object, self.FakeViewParent)
-        
+
         # call get_context_data
         context = self.MFC().get_context_data()
 
         self.assertEqual(context, {"form": "value"})
 
         # update base class tuple
-        self.MFC.__bases__ = (object, self.FakeViewChild)
-        
+        self.MFC.__bases__ = (self.FakeViewChild, object)
+
         # call get_context_data
         context = self.MFC().get_context_data()
 
@@ -177,9 +181,126 @@ class MultipleFormMixinTests(TestCase):
 
         # update base class tuple
         self.MFC.__bases__ = (object, self.FakeViewParent)
-        
+
         # get form_class using get_form_class method
         FormClass = self.MFC().get_form_class()
 
         self.assertTrue(FormClass, FormGroup)
         self.assertTrue(FormClass.form_classes, self.MFC.forms)
+
+
+class MutableMultipleFormMixinTests(TestCase):
+
+    @mock.patch('biodb.mixins.MutableMultipleFormMixin.handle_post')
+    @mock.patch('biodb.mixins.MultipleFormMixin.get_form_class')
+    def test_get_form_class(self, method_called_if_get, method_called_if_post):
+        m = MutableMultipleFormMixin()
+
+        m.request = mock.Mock()
+        m.request.method = "GET"
+        m.get_form_class()
+        self.assertEqual(method_called_if_get.mock_calls, [call()])
+
+        m.request.method = "POST"
+        m.get_form_class()
+        self.assertEqual(method_called_if_post.mock_calls, [call()])
+
+    @mock.patch('biodb.mixins.MultipleFormMixin.get_form_class')
+    @mock.patch('biodb.mixins.MutableMultipleFormMixin.update_list_of_tuples_attr')
+    def test_handle_post(self, update_list_of_tuples_attr, super_get_form_class):
+        update_list_of_tuples_attr.return_value = "mod_list_of_tuples"
+
+        m = MutableMultipleFormMixin()
+        m.forms = [("class1", "prefixA-1"), ("class1",
+                                             "prefixA-2"), ("class2", "prefixB")]
+        m.request = mock.Mock()
+        m.request.POST = {"prefixA-1": "dog",
+                          "prefixA-3": "cat", "prefixB": "horse"}
+        m.cloneable_forms = [("class1", "prefixA")]
+
+        m.handle_post()
+
+        self.assertEqual(update_list_of_tuples_attr.mock_calls, [call(
+                list_of_tuples = m.forms,
+                POST_data=m.request.POST,
+                subprefix="prefixA",
+                form_class="class1"
+            )])
+
+        self.assertEqual(super_get_form_class.mock_calls, [call(
+            forms="mod_list_of_tuples")])
+
+    @mock.patch.multiple("biodb.mixins.MutableMultipleFormMixin",
+                         find_index=mock.MagicMock(side_effect=[0, 10]),
+                         create_prefix_pattern=mock.MagicMock(
+                             return_value="pattern"),
+                         find_prefixes_in_POST=mock.MagicMock(
+                             return_value="prefixes"),
+                         get_uniqe=mock.MagicMock(
+                             return_value="uniqe_prefixes"),
+                         get_sorted=mock.MagicMock(
+                             return_value="sort_prefixes"),
+                         prepare_list_to_paste=mock.MagicMock(
+                             return_value="list_to_paste"),
+                         replace_sublist_by_list=mock.MagicMock(
+                             return_value="mod_list_of_tuples")
+                         )
+    def test_update_list_of_tuples_attr(self, **kwargs):
+        m = MutableMultipleFormMixin()
+
+        # m.list_of_tuples = "list_of_tuples"
+
+        mod_list_of_tuples = m.update_list_of_tuples_attr(
+            list_of_tuples="list_of_tuples",
+            POST_data="data",
+            subprefix="prefix",
+            form_class="form_class"
+        )
+
+        self.assertEqual(m.find_index.mock_calls, [call(
+            'prefix', 'list_of_tuples'), call('prefix', 'list_of_tuples', max=True)])
+        self.assertEqual(m.create_prefix_pattern.mock_calls, [call("prefix")])
+        self.assertEqual(m.find_prefixes_in_POST.mock_calls,
+                         [call("pattern", "data")])
+        self.assertEqual(m.get_uniqe.mock_calls, [call("prefixes")])
+        self.assertEqual(m.get_sorted.mock_calls, [call("uniqe_prefixes")])
+        self.assertEqual(m.prepare_list_to_paste.mock_calls, [
+                         call("sort_prefixes", "form_class")])
+        self.assertEqual(m.replace_sublist_by_list.mock_calls, [
+                         call(0, 11, 'list_of_tuples', 'list_to_paste')])
+        self.assertEqual(mod_list_of_tuples, "mod_list_of_tuples")
+
+    def test_find_index(self):
+        m = MutableMultipleFormMixin()
+        list_of_tuples = [("1", "Aa"), ("2", "Aa"), ("3", "Aa"), ("4", "Bb")]
+        min_index = m.find_index("A", list_of_tuples)
+        max_index = m.find_index("A", list_of_tuples, max=True)
+        self.assertEqual(min_index, 0)
+        self.assertEqual(max_index, 2)
+
+    def test_replace_sublist_by_list(self):
+        lst = ["A", "B", "C", "D"]
+        list_to_paste = ["1", "2"]
+        m = MutableMultipleFormMixin()
+        new_lst = m.replace_sublist_by_list(1, 2, lst, list_to_paste)
+        self.assertEqual(new_lst, ["A", "1", "2", "C", "D"])
+
+    def test_create_prefix_pattern(self):
+        m = MutableMultipleFormMixin()
+        pattern = m.create_prefix_pattern(subprefix="prefix")
+        self.assertEqual(pattern, "prefix-\d+")
+
+    def test_find_prefixes_in_POST(self):
+        data = {"adult-1": "Joey", "adult-2": "Chandler", "child-1": "Ross"}
+        m = MutableMultipleFormMixin()
+        keys = m.find_prefixes_in_POST("adult-\d+", data)
+
+        self.assertEqual(keys, ["adult-1", "adult-2"])
+
+    def test_prepare_list_to_paste(self):
+        m = MutableMultipleFormMixin()
+        form_class = mock.MagicMock
+        lot = m.prepare_list_to_paste(
+            ["name-1", "name-2", "name-3"], form_class)
+        self.assertEqual(lot, [(form_class, "name-1"),
+                               (form_class, "name-2"), (form_class, "name-3")])
