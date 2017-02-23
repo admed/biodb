@@ -174,7 +174,7 @@ class RObjectCreateView(mixins.ProjectPermissionMixin, PermissionRequiredMixin, 
                        'projects.can_modify_project_content']
     raise_exception = True
     forms = [(NameForm, "name-1"), (RObjectForm, "robject")]
-    cloneable_forms = {"name":NameForm}
+    cloneable_forms = [(NameForm, "name")]
     template_name = "projects/robject_create.html"
     formgroup_context_name = "formgroup"
 
