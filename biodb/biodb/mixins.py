@@ -76,11 +76,6 @@ class MultipleFormMixin(object):
                 template instead of 'form'.
     """
 
-    def __init__(self, forms=None, formgroup_context_name=None):
-        if forms and formgroup_context_name:
-            self.forms = forms
-            self.formgroup_context_name = formgroup_context_name
-
     def get_form_class(self, forms=None):
         """ Create FormGroup instance using django-rebar's formgroup_factory.
 
@@ -118,12 +113,6 @@ class MutableMultipleFormMixin(MultipleFormMixin):
                 explanation in MultipleFormMixin doc), values are form classes.
     """
 
-    def __init__(self, forms=None, formgroup_context_name=None, cloneable_forms=None):
-        if cloneable_forms:
-            self.cloneable_forms = cloneable_forms
-        super(MutableMultipleFormMixin, self).__init__(
-            forms=forms, formgroup_context_name=formgroup_context_name)
-
     def get_form_class(self):
         """ For any cloneable form call method to update self.forms.
 
@@ -134,25 +123,28 @@ class MutableMultipleFormMixin(MultipleFormMixin):
         # If POST update self.forms. Iterate over subprefixes and each time pass
         # all required data to self.update_list_of_tuples.
         if self.request.method == "POST":
-            self.list_of_tuples = list(self.forms)
-            POST_data = self.request.POST
-            cloneable_forms = self.cloneable_forms
-
-            for subprefix, form_class in cloneable_forms.iteritems():
-                self.update_list_of_tuples(
-                    # list_of_tuples=list_of_tuples,
-                    POST_data=POST_data,
-                    subprefix=subprefix,
-                    form_class=form_class
-                )
-
-            return super(MutableMultipleFormMixin, self).get_form_class(forms=self.list_of_tuples)
+            return self.handle_post()
 
         # if GET call superclass method
         else:
             return super(MutableMultipleFormMixin, self).get_form_class()
+    
+    def handle_post(self):
+        list_of_tuples = list(self.forms)
+        POST_data = self.request.POST
+        cloneable_forms = self.cloneable_forms
 
-    def update_list_of_tuples(self, POST_data, subprefix, form_class):
+        for form_class, subprefix in cloneable_forms:
+            list_of_tuples = self.update_list_of_tuples_attr(
+                list_of_tuples = list_of_tuples,
+                POST_data=POST_data,
+                subprefix=subprefix,
+                form_class=form_class
+            )
+        return super(MutableMultipleFormMixin, self).get_form_class(forms=list_of_tuples)
+        
+
+    def update_list_of_tuples_attr(self, list_of_tuples, POST_data, subprefix, form_class):
         """ Update single cloneable form in self.forms. 
 
             Call several methods in sequence and pass them appriopriate data. 
@@ -162,7 +154,6 @@ class MutableMultipleFormMixin(MultipleFormMixin):
                 POST_data (dict): copy of request.POST dict
                 subprefix (str): name-part of form prefix
         """
-        list_of_tuples = self.list_of_tuples
         min_index = self.find_index(subprefix, list_of_tuples)
         max_index = self.find_index(subprefix, list_of_tuples, max=True)
         prefix_patt = self.create_prefix_pattern(subprefix)
@@ -170,10 +161,12 @@ class MutableMultipleFormMixin(MultipleFormMixin):
         prefixes = self.get_uniqe(prefixes)
         prefixes = self.get_sorted(prefixes)
         list_to_paste = self.prepare_list_to_paste(prefixes, form_class)
-        self.replace_sublist_by_list(
-            min_index, max_index, self.list_of_tuples, list_to_paste)
+        
+        mod_list_of_tuples = self.replace_sublist_by_list(
+            min_index, max_index+1, list_of_tuples, list_to_paste)
 
-        # return mod_list_of_tuples
+        return mod_list_of_tuples
+
 
     @staticmethod
     def find_index(snippet, list_of_tuples, max=False):
@@ -197,9 +190,11 @@ class MutableMultipleFormMixin(MultipleFormMixin):
 
         lst = list_of_tuples
         if max:
-            lst = reversed(lst)
+            lst = list(reversed(lst))
         for i, e in enumerate(lst):
             if snippet in e[1]:
+                if max:
+                    return len(lst)-i-1
                 return i
 
     @staticmethod
@@ -212,7 +207,9 @@ class MutableMultipleFormMixin(MultipleFormMixin):
                 lst (list): list to slice
                 list_to_paste (list) 
         """
-        lst[min_idx:max_idx] = list_to_paste
+        lst_copy = list(lst)
+        lst_copy[min_idx:max_idx] = list_to_paste
+        return lst_copy
 
     @staticmethod
     def create_prefix_pattern(subprefix):
