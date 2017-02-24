@@ -4,11 +4,11 @@ from django.contrib.auth.models import User, Permission
 from projects.models import Project, RObject, Name
 from django.core.urlresolvers import reverse
 from guardian.shortcuts import assign_perm
-from projects import views
-from django.forms.models import ModelForm
-from django.forms.formsets import BaseFormSet
-from projects.forms import BaseNameFormSet
 import datetime
+import mock
+from rebar.group import formgroup_factory
+from projects import views
+from projects.forms import RObjectForm, NameForm
 
 
 # TODO: consider if this superclass is a good idea (slow speed down)
@@ -39,7 +39,8 @@ class ProjectsViewsTests(TestCase):
 
         # add permissions
         permission1 = Permission.objects.get(codename='can_visit_project')
-        permission2 = Permission.objects.get(codename='can_modify_project_content')
+        permission2 = Permission.objects.get(
+            codename='can_modify_project_content')
         cls.user.user_permissions.add(permission1, permission2)
 
         # assign permission to project instance
@@ -111,7 +112,7 @@ class RObjectListViewTests(ProjectsViewsTests):
         """
         POST_data = {
             "actions-form": False,
-            "csrfmiddlewaretoken": None, # include token imitation
+            "csrfmiddlewaretoken": None,  # include token imitation
             "1": "checked",
             "101": "checked"
         }
@@ -121,48 +122,107 @@ class RObjectListViewTests(ProjectsViewsTests):
         self.assertRedirects(resp, reverse("projects:robject_delete", kwargs={
                              "project_name": "test_project", "robject_ids": "1+101"}))
 
+
 class RObjectCreateViewTests(ProjectsViewsTests):
-    @classmethod
-    def setUpClass(cls):
-        super(RObjectCreateViewTests, cls).setUpClass()
+    @mock.patch("projects.views.redirect", return_value="redirect in progress!")
+    def test_form_valid(self, redirect_function):
+        Form = mock.Mock
+        lot = [(Form, "name1"), (Form, "name2"), (Form, "robject")]
+        FormClass = formgroup_factory(*[lot])
+        form = FormClass()
+        robject, name1, name2 = mock.Mock(
+            name="robject"), mock.Mock(), mock.Mock()
+        robject.save, name1.save, name2.save = mock.Mock(), mock.Mock(), mock.Mock()
+        form.robject.save = mock.Mock(return_value=robject)
+        form.name1.save = mock.Mock(return_value=name1)
+        form.name2.save = mock.Mock(return_value=name2)
 
-        cls.view = views.RObjectCreateView(kwargs = {"number_of_name_forms":1})
+        instance = mock.Mock(spec=views.RObjectCreateView)
+        instance.get_success_url = mock.Mock(return_value="success_url")
+        result = views.RObjectCreateView.form_valid(instance, form)
 
-    def test_get_form_class_method(self): # test without client
-        # create form_class using method
-        form_class = self.view.get_form_class()
+        form.robject.save.assert_called_once_with(commit=False)
+        form.name1.save.assert_called_once_with(commit=False)
+        form.name2.save.assert_called_once_with(commit=False)
 
-        # check if it's FormGroup class
-        self.assertEqual(form_class.__name__, "FormGroup")
+        robject.save.assert_called_once_with()
+        name1.save.assert_called_once_with()
+        name1.save.assert_called_once_with()
 
-        # check if contains two forms
-        form_subclasses = form_class.form_classes  
-        self.assertEqual(len(form_subclasses), 2)
+        self.assertEqual(name1.robject, robject)
+        self.assertEqual(name2.robject, robject)
 
-        # unpack FormGroup and test single forms
-        form_set = form_subclasses[0][0]
-        model_form = form_subclasses[1][0]
-        self.assertTrue(issubclass(form_set, BaseNameFormSet))  
-        self.assertTrue(issubclass(model_form, ModelForm))
+        instance.get_success_url.assert_called_once_with()
+        redirect_function.assert_called_once_with("success_url")
+        self.assertEqual(result, "redirect in progress!")
 
-        # test formset:
+    @mock.patch("projects.views.reverse")
+    def test_get_success_url(self, reverse_function):
+        instance = mock.Mock(spec=views.RObjectCreateView)
+        instance.kwargs = {"project_name": "best_name_ever"}
+        views.RObjectCreateView.get_success_url(instance)
+        reverse_function.assert_called_once_with("projects:robject_list", kwargs={
+                                                 "project_name": "best_name_ever"})
 
-        # test model
-        self.assertEqual(form_set.model, Name)
-        # test number of forms in formset
-        self.assertEqual(form_set.extra, self.view.kwargs["number_of_name_forms"]) 
-        # test fields exclude
-        self.assertEqual(("robject",), form_set.form.Meta.exclude) 
+    def test_view(self):
+        """ Integration test. 
 
-        # test model_form:
+            Test:
+                get method:
+                    response status code
+                    template used
+                    form instance in context
+                    form instance name in context
+                post method:
+                    valid data passed:
+                        response status code
+                        response redirect address
+                        creted robject in db
+                    invalid data passed:
+                        response status code
+                        form errors in template  
+        """
+        url = reverse("projects:robject_create", kwargs={
+            "project_name": "test_project"})
 
-        # test model
-        self.assertEqual(model_form.Meta.model, RObject)
-        # test fields exclude
-        self.assertEqual(("project","creator",), model_form.Meta.exclude) 
+        # GET method
+        resp = self.c.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, "projects/robject_create.html")
 
-    # TODO: finish testing this view after modernization!
+        # prepare form_class to compare
+        lst = [(NameForm, "name-1"), (RObjectForm, "robject")]
+        FormClass = formgroup_factory(*[lst])
+        self.assertEqual(
+            resp.context["formgroup"].form_classes, FormClass().form_classes)
 
+        # POST method, valid data
+        # pass only those data, which user is allowed to enter in form
+        # include onlu required fields
+        # (validation depends inter alia on model fields specification)
+        data = {
+            "group-name-1-title": "hej",  # required field
+            "group-robject-project": "1"  # required field
+            # ... many other fields ommited
+        }
+        resp = self.c.post(url, data=data)
+        expected_url = reverse("projects:robject_list", kwargs={
+                               "project_name": "test_project"})
+        self.assertRedirects(resp, expected_url)
+
+        # POST method, invalid data
+        data = {
+            "group-name-1-title": "",
+            "group-robject-project": ""
+            # ... many other fields ommited
+        }
+        resp = self.c.post(url, data=data)
+        self.assertEqual(resp.status_code, 200)
+
+        expected_errors = [{'title': [u'This field is required.']}, {
+            'project': [u'This field is required.']}]
+        # unnecessary assertion but whatever..
+        self.assertEqual(resp.context["formgroup"].errors, expected_errors) 
 
     # def test_RobjectDetailView(self):
     #     pass
